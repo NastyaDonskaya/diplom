@@ -6,7 +6,7 @@ const checkRoleMiddleware = require('../middleware/checkRoleMiddleware')
 
 router.post('/', authMiddleware, AchiveController.create)
 router.get('/all', checkRoleMiddleware('hr'), AchiveController.getAll)
-router.get('/my', authMiddleware, AchiveController.getMine)
+router.get('/all/:userId', authMiddleware, AchiveController.getUserAchieves)
 router.get('/:id', authMiddleware, AchiveController.getOne)
 
 module.exports = router
