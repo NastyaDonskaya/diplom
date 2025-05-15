@@ -1,5 +1,5 @@
 const ApiError = require('../error/apiError')
-const {KPI_value, KPI_type, Achievement, AchievementAttributeValue, AchievementTypeAttribute} = require('../models/models')
+const {KPI_value, KPI_type, Achievement, AchievementAttributeValue, AchievementTypeAttribute, User} = require('../models/models')
 
 class KpiController {
     async create(req, res, next) {
@@ -83,6 +83,32 @@ class KpiController {
             })
 
             return res.json(kpiValue)
+        } catch (e) {
+            return next(ApiError.badReq(e.message))
+        }
+    }
+
+    async getValues (req, res, next) {
+        const {userId} = req.params
+
+        const user = await User.findByPk(userId)
+        if (!user) {
+            return next(ApiError.badReq('Пользователь не найден'))        
+        }
+
+        if (req.user.role !== 'hr' && req.user.id !== +userId || req.user.role === 'hr' && req.user.companyId !== user.companyId) {
+            return next(ApiError.badReq('Нет доступа'))
+        }
+
+        if (!userId) {
+            return next(ApiError.badReq('Введите id пользователя'))
+        }
+        try {
+            const vals = await KPI_value.findAll({
+                where: {userId},
+                include: [{ model: KPI_type}]
+            })
+            return res.json(vals)
         } catch (e) {
             return next(ApiError.badReq(e.message))
         }
