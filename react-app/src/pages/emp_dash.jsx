@@ -1,57 +1,95 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
 const EmployeeDashboard = () => {
+  const { id } = useParams()
+  const [kpiValues, setKpiValues] = useState([]);
+  const [achieves, setAchieves] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const token = localStorage.getItem("token")
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const kpiRes = await fetch(`http://localhost:5000/api/kpi/vals/${id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (kpiRes.ok) {
+          const data = await kpiRes.json();
+          setKpiValues(data);
+          setLoading(false);
+        } else {
+          const e = await kpiRes.json();
+          setError(true);
+          alert(`Ошибка: ${e.message || 'Не удалось загрузить KPI'}`);
+        }
+        const achieveRes = await fetch(`http://localhost:5000/api/achieve/all/${id}`,{
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (achieveRes.ok) {
+          const achieveData = await achieveRes.json();
+          const sorted = achieveData.sort((a, b) => new Date(b.date) - new Date(a.date));
+          setAchieves(sorted.slice(0, 5)); // только последние 5
+        } else {
+          const e = await achieveRes.json();
+          console.error("Ошибка получения достижений:", e.message);
+        }
+      } catch (e) {
+          alert(`Сервер не отвечает: ${e.message}`);
+          setLoading(false)
+      }
+    };
+
+    fetchData();
+  }, []);
+
+
+
+
   return (
     <div style={styles.container}>
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Мои показатели</h2>
+
+        {loading && <p>Загрузка...</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
+
         <div style={styles.cardRow}>
-          <div style={styles.card}>
-            <p style={styles.cardTitle}>Пунктуальность</p>
-            <p style={styles.cardValue}>95%</p>
-          </div>
-          <div style={styles.card}>
-            <p style={styles.cardTitle}>Завершенные задачи</p>
-            <p style={styles.cardValue}>42</p>
-          </div>
-          <div style={styles.card}>
-            <p style={styles.cardTitle}>Среднее время работы в день</p>
-            <p style={styles.cardValue}>3.5 ч</p>
-          </div>
+          {kpiValues.map((kpi) => (
+            <div key={kpi.id} style={styles.card}>
+              <p style={styles.cardTitle}>{kpi.kpi_type.name}</p>
+              <p style={styles.cardValue}>{kpi.value}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Последние достижения</h2>
-        <ul style={styles.list}>
-          <li style={styles.listItem}>Доклад</li>
-          <li style={styles.listItem}>Проект</li>
-          <li style={styles.listItem}>Выступление на конференции</li>
-        </ul>
+        {achieves.length === 0 ? (
+          <p>Нет достижений</p>
+        ) : (
+          <ul style={styles.achieveList}>
+            {achieves.map((a) => (
+              <li key={a.id} style={styles.achieveItem}>
+                <strong>{a.name}</strong> — {a.achieve_type?.name || "Неизвестно"}, {a.date}
+              </li>
+            ))}
+          </ul>
+        )}
+        <button style={styles.button}>Все достижения</button>
       </section>
 
-      <section style={styles.section}>
-          <h2 style={styles.sectionTitle}>Мои отчёты</h2>
-          <div style={styles.reportList}>
-            <div style={styles.reportCard}>
-              <p style={styles.reportTitle}>Отчёт 3</p>
-              <p style={styles.reportDate}>Создан: 01.04.2025</p>
-              <button style={styles.reportButton}>Просмотреть</button>
-            </div>
-            <div style={styles.reportCard}>
-              <p style={styles.reportTitle}>Отчёт 2</p>
-              <p style={styles.reportDate}>Создан: 01.03.2025</p>
-              <button style={styles.reportButton}>Просмотреть</button>
-            </div>
-            <div style={styles.reportCard}>
-              <p style={styles.reportTitle}>Отчёт 1</p>
-              <p style={styles.reportDate}>Создан: 01.02.2025</p>
-              <button style={styles.reportButton}>Просмотреть</button>
-            </div>
-          </div>
-          <button style={styles.button}>Сформировать новый отчёт</button>
-        </section>
-
+      {/* отчеты*/}
     </div>
   );
 };
@@ -100,60 +138,31 @@ const styles = {
     fontWeight: "600",
     color: "#0056b3",
   },
-  list: {
-    paddingLeft: "1rem",
+  cardDescription: {
+    fontSize: "0.85rem",
+    color: "#555",
+    marginTop: "1rem",
   },
-  listItem: {
-    marginBottom: "0.6rem",
-    fontSize: "1rem",
+  achieveList: {
+    listStyle: "none",
+    padding: 0,
+    margin: 0,
+    lineHeight: "1.8",
+  },
+  achieveItem: {
+    fontSize: "0.95rem",
+    borderBottom: "1px solid #ccc",
+    paddingBottom: "0.5rem",
+    marginBottom: "0.5rem",
   },
   button: {
-    padding: "0.85rem 1.5rem",
-    backgroundColor: "#0056b3",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-    fontSize: "1rem",
-    fontWeight: "bold",
-    cursor: "pointer",
-    transition: "background-color 0.3s ease",
-  },
-  reportList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "1rem",
-    marginBottom: "1.5rem",
-  },
-  reportCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.6)",
-    borderRadius: "10px",
-    padding: "1rem",
-    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexWrap: "wrap",
-  },
-  reportTitle: {
-    fontSize: "1rem",
-    fontWeight: "500",
-    color: "#2c3e50",
-    margin: "0",
-  },
-  reportDate: {
-    fontSize: "0.9rem",
-    color: "#555",
-    margin: "0.5rem 0",
-  },
-  reportButton: {
+    marginTop: "1rem",
     padding: "0.5rem 1rem",
     backgroundColor: "#0056b3",
     color: "#fff",
     border: "none",
     borderRadius: "6px",
-    fontSize: "0.9rem",
     cursor: "pointer",
-    transition: "background-color 0.3s ease",
   },
 };
 
