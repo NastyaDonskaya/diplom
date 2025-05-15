@@ -209,7 +209,6 @@ class AchiveController {
 
             if (user.role === 'hr') {
                 const ownerUser = await User.findByPk(achieve.userId)
-                console.log(ownerUser)
                 if (ownerUser.companyId !== user.companyId) {
                     return next(ApiError.badReq('Нет доступа'))
                 }
@@ -265,7 +264,31 @@ class AchiveController {
         }
     }
 
-        
+    async getUserAchieves (req, res, next) {
+        const {userId} = req.params
+        if (!userId) {
+            return next(ApiError.badReq('нет id пользователя'))
+        }
+
+        const user = await User.findByPk(userId)
+        if (!user) {
+            return next(ApiError.badReq('Пользователь не найден'))
+        }
+
+        if (req.user.role !== 'hr' && req.user.id !== +userId || req.user.role === 'hr' && req.user.companyId !== user.companyId) {
+            return next(ApiError.badReq('Нет доступа'))
+        }
+
+        try {
+            const achieves = await Achievement.findAll({
+                where: {userId},
+                include: [{model: AchievementType}]
+            })
+            return res.json(achieves)
+        } catch (e) {
+            return next(ApiError.badReq(e.message))
+        }
+    }
     
 }
 
