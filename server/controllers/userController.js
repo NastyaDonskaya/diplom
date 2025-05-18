@@ -36,9 +36,13 @@ class UserController {
         let user, company;
         
         if (role === 'ceo') {
+            const isFindCompany = await Company.findOne({where: {name: companyName}})
+            if (isFindCompany) {
+                return next(ApiError.badReq('Такая компания уже существует'))
+            }
             const companyHashPassword = await bcrypt.hash(companyPassword, 4);
             company = await Company.create({name: companyName, password: companyHashPassword}) 
-            await company.save();
+            await company.save()
 
         } else {
 
@@ -54,6 +58,8 @@ class UserController {
 
         }
 
+        const isActive = role === 'ceo' ? true : false
+
         user = await User.create({
             email,
             password: hashPassword,
@@ -61,6 +67,7 @@ class UserController {
             name,
             surname,
             age,
+            isActive,
             companyId: company.id
         });
 
@@ -130,7 +137,7 @@ class UserController {
     async getMembers (req, res, next) {
         try {
             const members = await User.findAll({
-                where: { companyId: req.user.companyId },
+                where: { companyId: req.user.companyId, isActive: true},
                 attributes: ['id', 'email', 'role', 'name', 'surname']
             })
             return res.json(members)
@@ -139,7 +146,69 @@ class UserController {
         }   
     }
 
+    async getQuery (req, res, next) {
+        try {
+            const querys = await User.findAll({
+                where: { companyId: req.user.companyId, isActive: false },
+                attributes: ['id', 'email', 'role', 'name', 'surname']
+            })
+            return res.json(querys)
+        } catch (e) {
+            return next(ApiError.badReq(e.message))
+        }
+    }
+
+    async acceptMember (req, res, next) {
+        try {
+            const { id } = req.params
+            const companyId = req.user.companyId
+
+            if (req.user.role !== 'hr' && req.user.role !== 'ceo') {
+                return next(ApiError.badReq('Нет доступа'))
+            }
+
+            const owner = await User.findOne({where: {id, companyId, isActive: false}})
+
+            if (!owner) {
+                return next(ApiError.badReq('Заявка пользователя в компании не найдена'))
+            }
+
+            owner.isActive = true
+            await owner.save()
+
+            return res.json(owner)
+        } catch (e) {
+            return next(ApiError.badReq(e.message))
+        }
+    }
     
+    async removeMember (req, res, next) {
+        try {
+            const {id} = req.params
+            const companyId = req.user.companyId
+
+            const owner = await User.findOne({where: {id, companyId, isActive: true}})
+
+            if (!owner) {
+                return next(ApiError.badReq('Активный пользователь не найден'))
+            }
+
+            if (req.user.role === 'emp' && parseInt(id) !== req.user.id || owner.companyId !== companyId) {
+                return next(ApiError.badReq('Нет доступа'))
+            }
+
+            if (owner.isActive === false) {
+                return next(ApiError.badReq('Пользователь уже удален'));
+            }
+
+            owner.isActive = false
+            await owner.save()
+
+            return res.json(owner)
+        } catch (e) {
+            return next(ApiError.badReq(e.message))
+        }
+    }
 }
 
 module.exports = new UserController()

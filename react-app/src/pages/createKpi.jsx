@@ -58,7 +58,7 @@ export default function CreateKpiValue() {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/kpi_value', {
+      const res = await fetch('http://localhost:5000/api/kpi', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

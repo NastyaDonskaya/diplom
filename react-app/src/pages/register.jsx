@@ -57,12 +57,12 @@ function Register() {
           companyPassword,
         }),
       });
+
+      const data = await response.json();
   
       if (!response.ok) {
-        throw new Error("Ошибка регистрации");
+        throw new Error(data.message);
       }
-  
-      // const data = await response.json();
   
       alert("Регистрация успешна!");
       setLoading(false);

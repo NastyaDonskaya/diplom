@@ -55,7 +55,7 @@ const DashboardLayout = () => {
             <Link style={styles.link} to="/achievements">Достижения</Link>
             <Link style={styles.link} to="/achievements">Показатели KPI</Link>
             <Link style={styles.link} to="/reports">Отчеты</Link>
-            <Link style={styles.link} to="/settings">Компания</Link>
+            <Link style={styles.link} to="/dashboard/company">Компания</Link>
           </nav>
         </aside>
       )}

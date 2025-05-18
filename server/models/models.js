@@ -10,6 +10,7 @@ const User = sequelize.define('user', {
     name: {type: DataTypes.STRING, defaultValue: "-"},
     surname: {type: DataTypes.STRING, defaultValue: "-"},
     age: {type: DataTypes.INTEGER, defaultValue: 0},
+    isActive: {type: DataTypes.BOOLEAN, defaultValue: false}
 })
 
 const Company = sequelize.define('company',{
