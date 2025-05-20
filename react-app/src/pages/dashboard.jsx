@@ -52,8 +52,7 @@ const DashboardLayout = () => {
           <h2 style={styles.logo}>{payload.companyName}</h2>
           <nav style={styles.nav}>
             <Link style={styles.link} to={`/dashboard/main/${payload.id}`}>Главная</Link>
-            <Link style={styles.link} to="/achievements">Достижения</Link>
-            <Link style={styles.link} to="/achievements">Показатели KPI</Link>
+            <Link style={styles.link} to="/dashboard/achievements">Достижения</Link>
             <Link style={styles.link} to="/reports">Отчеты</Link>
             <Link style={styles.link} to="/dashboard/company">Компания</Link>
           </nav>
@@ -122,7 +121,7 @@ const styles = {
 
   sidebar: {
     width: "240px",
-    backgroundColor: "#0a2540", // тёмная панель
+    backgroundColor: "#0a2540",
     color: "#ffffff",
     padding: "1.5rem",
     display: "flex",

@@ -30,12 +30,13 @@ function Login() {
           password,
         }),
       })
+
+      const data = await res.json()
   
       if (!res.ok) {
-        throw new Error("Неверный email или пароль")
+        throw new Error(data.message || "Неверный email или пароль")
       }
   
-      const data = await res.json()
       localStorage.setItem("token", data.token)
   
       alert("Вы успешно вошли!")
@@ -104,20 +105,20 @@ const styles = {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "linear-gradient(to right,rgb(228, 239, 247), #a6c7f7)", // мягкий градиент
+      background: "linear-gradient(to right,rgb(228, 239, 247), #a6c7f7)",
       padding: "1rem",
     },
     container: {
-      backgroundColor: "rgba(255, 255, 255, 0.6)", // полупрозрачный белый фон
+      backgroundColor: "rgba(255, 255, 255, 0.6)",
       padding: "2.5rem",
       borderRadius: "12px",
-      boxShadow: "0 10px 30px rgba(0, 0, 0, 0.1)", // мягкая тень для контейнера
+      boxShadow: "0 10px 30px rgba(0, 0, 0, 0.1)",
       width: "100%",
       maxWidth: "420px",
       fontFamily: "Segoe UI, sans-serif",
       transition: "transform 0.3s ease",
       animation: "fadeIn 0.5s ease",
-      backdropFilter: "blur(10px)", // размытие фона
+      backdropFilter: "blur(10px)",
     },
     title: {
       textAlign: "center",
@@ -145,8 +146,8 @@ const styles = {
       outline: "none",
       width: "100%",
       boxSizing: "border-box",
-      transition: "box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease", // добавлен эффект при фокусе
-      boxShadow: "0 0px 8px rgba(0, 0, 0, 0.1)", // легкая тень для объема
+      transition: "box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease",
+      boxShadow: "0 0px 8px rgba(0, 0, 0, 0.1)",
     },
     passwordWrapper: {
       position: "relative",

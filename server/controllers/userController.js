@@ -1,6 +1,7 @@
 const ApiError = require('../error/apiError')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const { Op } = require('sequelize');
 const {User, Company} = require('../models/models')
 
 const makeJWT = (id, email, role, name, surname, companyId, companyName) => {
@@ -134,17 +135,49 @@ class UserController {
         return res.json({token})
     }
 
-    async getMembers (req, res, next) {
+    async getMembers(req, res, next) {
         try {
+            const user = await User.findByPk(req.user.id);
+            if (user.isActive === false) {
+                return next(ApiError.badReq('Нет доступа'));
+            }
+
+            const whereFilter = {
+                companyId: req.user.companyId,
+                isActive: true,
+            };
+
+            if (req.query.search) {
+                whereFilter[Op.or] = [
+                    {
+                        name: {
+                            [Op.iLike]: `%${req.query.search}%`
+                        }
+                    },
+                    {
+                        surname: {
+                            [Op.iLike]: `%${req.query.search}%`
+                        }
+                    }
+                ];
+            }
+
+
+            if (req.query.role) {
+                whereFilter.role = req.query.role;
+            }
+
             const members = await User.findAll({
-                where: { companyId: req.user.companyId, isActive: true},
-                attributes: ['id', 'email', 'role', 'name', 'surname']
-            })
-            return res.json(members)
+                where: whereFilter,
+                attributes: ['id', 'email', 'role', 'name', 'surname'],
+            });
+
+            return res.json(members);
         } catch (e) {
-            return next(ApiError.badReq(e.message))
-        }   
+            return next(ApiError.badReq(e.message));
+        }
     }
+
 
     async getQuery (req, res, next) {
         try {
@@ -168,6 +201,11 @@ class UserController {
             }
 
             const owner = await User.findOne({where: {id, companyId, isActive: false}})
+
+            const user = await User.findByPk(req.user.id)
+            if (user.isActive === false) {
+                return next(ApiError.badReq('Нет доступа'))
+            }
 
             if (!owner) {
                 return next(ApiError.badReq('Заявка пользователя в компании не найдена'))

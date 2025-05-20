@@ -1,100 +1,107 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-const API_URL = 'http://localhost:5000/api'
+const API_URL = 'http://localhost:5000/api';
 
-const ProfilePage = () => {
-  const { id } = useParams()
+function ProfilePage() {
+  const { id } = useParams();
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}/user/profile/${id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error("Ошибка при получении профиля");
+    const fetchProfile = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const response = await fetch(`${API_URL}/user/profile/${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Ошибка при загрузке профиля");
         }
-        return res.json();
-      })
-      .then(data => {
+
         setProfile(data);
-      })
-      .catch(err => {
+      } catch (err) {
         setError(err.message);
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
   }, [id]);
 
-  if (error) return <div style={{ color: "red" }}>{error}</div>;
-  if (!profile) return <div>Загрузка...</div>;
-
   return (
-    <div style={styles.container}>
-      <div style={styles.profileCard}>
-        <h2 style={styles.name}>
-          {profile.name} {profile.surname}
-        </h2>
-        <p style={styles.role}>
-          {profile.role === "emp"
-            ? "Сотрудник"
-            : profile.role === "ceo"
-            ? "Руководитель"
-            : profile.role === "hr"
-            ? "HR-менеджер"
-            : profile.role}
-        </p>
+    <div style={styles.wrapper}>
+      <div style={styles.container}>
+        {loading ? (
+          <p style={styles.loading}>Загрузка...</p>
+        ) : error ? (
+          <p style={styles.error}>{error}</p>
+        ) : (
+          <>
+            <h2 style={styles.name}>
+              {profile.name} {profile.surname}
+            </h2>
+            <p style={styles.role}>
+              {profile.role === "emp"
+                ? "Сотрудник"
+                : profile.role === "ceo"
+                ? "Руководитель"
+                : profile.role === "hr"
+                ? "HR-менеджер"
+                : profile.role}
+            </p>
+            <p style={styles.email}>{profile.email}</p>
 
-        <p style={styles.bio}>{profile.email}</p>
-        <div style={styles.stats}>
-          <div style={styles.statItem}>
-            <h3 style={styles.statNumber}>{profile.company.name}</h3>
-            <p style={styles.statLabel}>Компания</p>
-          </div>
-          <div style={styles.statItem}>
-            <h3 style={styles.statNumber}>{profile.age}</h3>
-            <p style={styles.statLabel}>Возраст</p>
-          </div>
-        </div>
-        <button style={styles.editButton}>Редактировать профиль</button>
+            <div style={styles.stats}>
+              <div>
+                <h3 style={styles.statValue}>{profile.company.name}</h3>
+                <p style={styles.statLabel}>Компания</p>
+              </div>
+              <div>
+                <h3 style={styles.statValue}>{profile.age}</h3>
+                <p style={styles.statLabel}>Возраст</p>
+              </div>
+            </div>
+
+            <button style={styles.button}>Редактировать профиль</button>
+          </>
+        )}
       </div>
     </div>
   );
-};
-
-
+}
 
 const styles = {
-  container: {
-    padding: "2rem",
+  wrapper: {
+    minHeight: "100vh",
     display: "flex",
+    alignItems: "center",
     justifyContent: "center",
+    background: "linear-gradient(to right, rgb(228, 239, 247), #a6c7f7)",
+    padding: "1rem",
     fontFamily: "Segoe UI, sans-serif",
-    background: "linear-gradient(to right, #e4eff7, #a6c7f7)",
-    minHeight: "70vh",
   },
-  profileCard: {
+  container: {
     backgroundColor: "rgba(255, 255, 255, 0.85)",
+    padding: "2.5rem",
     borderRadius: "12px",
-    padding: "2rem",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-    maxWidth: "600px",
+    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.1)",
     width: "100%",
+    maxWidth: "480px",
     textAlign: "center",
-    transition: "transform 0.3s ease",
-  },
-  avatar: {
-    width: "120px",
-    height: "120px",
-    borderRadius: "50%",
-    objectFit: "cover",
-    marginBottom: "1rem",
-    border: "4px solid #0056b3",
   },
   name: {
     fontSize: "1.8rem",
+    fontWeight: "600",
     marginBottom: "0.5rem",
     color: "#2c3e50",
   },
@@ -103,7 +110,7 @@ const styles = {
     color: "#777",
     marginBottom: "1rem",
   },
-  bio: {
+  email: {
     fontSize: "1rem",
     color: "#555",
     marginBottom: "2rem",
@@ -113,21 +120,17 @@ const styles = {
     justifyContent: "space-around",
     marginBottom: "2rem",
   },
-  statItem: {
-    textAlign: "center",
-  },
-  statNumber: {
-    fontSize: "1.5rem",
+  statValue: {
+    fontSize: "1.3rem",
     fontWeight: "bold",
     color: "#0056b3",
-    marginBottom: "0.5rem",
   },
   statLabel: {
-    fontSize: "0.9rem",
-    color: "#777",
+    fontSize: "0.85rem",
+    color: "#666",
   },
-  editButton: {
-    padding: "0.85rem 1.5rem",
+  button: {
+    padding: "0.85rem",
     backgroundColor: "#0056b3",
     color: "#fff",
     border: "none",
@@ -136,6 +139,14 @@ const styles = {
     fontWeight: "bold",
     cursor: "pointer",
     transition: "background-color 0.3s ease",
+  },
+  error: {
+    color: "red",
+    fontWeight: "500",
+  },
+  loading: {
+    fontSize: "1rem",
+    color: "#333",
   },
 };
 

@@ -1,3 +1,4 @@
+const { where } = require('sequelize')
 const ApiError = require('../error/apiError')
 const {KPI_value, KPI_type, Achievement, AchievementAttributeValue, AchievementTypeAttribute, User} = require('../models/models')
 
@@ -89,7 +90,7 @@ class KpiController {
     }
 
     async getValues (req, res, next) {
-        const {userId} = req.params
+        const { userId, kpiTypeId } = req.params
 
         const user = await User.findByPk(userId)
         if (!user) {
@@ -104,8 +105,12 @@ class KpiController {
             return next(ApiError.badReq('Введите id пользователя'))
         }
         try {
+            const whereFilter = { userId }
+            if (kpiTypeId) {
+                whereFilter.kpiTypeId = kpiTypeId
+            }
             const vals = await KPI_value.findAll({
-                where: {userId},
+                where: whereFilter,
                 include: [{ model: KPI_type}]
             })
             return res.json(vals)

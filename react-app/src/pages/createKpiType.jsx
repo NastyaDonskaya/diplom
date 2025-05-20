@@ -121,7 +121,7 @@ export default function CreateKpiType() {
             </>
           )}
 
-          {calculationType !== 'DEF' && calculationType !== 'COUNT' && attributes.length > 0 && (
+          {calculationType !== 'DEF' && attributes.length > 0 && (
             <>
               <label style={styles.label}>Атрибут источника:</label>
               <select
@@ -146,7 +146,7 @@ export default function CreateKpiType() {
           <label style={styles.label}>Макс. значение:</label>
           <input type="number" min="0" value={maxValue} onChange={e => setMaxValue(e.target.value)} style={styles.input} required />
 
-          <button type="submit" style={styles.button}>Создать KPI</button>
+          <button type="submit" style={styles.button}>Создать тип KPI</button>
         </form>
       </div>
     </div>

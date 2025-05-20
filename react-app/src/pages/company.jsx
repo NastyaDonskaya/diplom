@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -25,30 +26,41 @@ const CompanyPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [role, setRole] = useState(null);
+  const [search, setSearch] = useState("");
   const token = localStorage.getItem("token");
   const payload = token ? parseJwt(token) : null;
 
+  const sortedMembers = [...members].sort((a, b) => {
+    if (a.id === payload.id) return -1;
+    if (b.id === payload.id) return 1;
+    return 0;
+  });
 
   useEffect(() => {
-    const storedRole = payload.role;
-    setRole(storedRole);
 
     const fetchData = async () => {
       try {
-        const membersRes = await fetch(`${API_URL}/user/members`, {
+        const queryParams = new URLSearchParams();
+        if (role) queryParams.append("role", role);
+        if (search) queryParams.append("search", search);
+        let url;
+        if (queryParams.toString()) {
+          url = `${API_URL}/user/members?${queryParams.toString()}`
+        } else {
+          url = `${API_URL}/user/members`
+        }
+        const membersRes = await fetch(url, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
         });
-
-        if (!membersRes.ok) {
-          const err = await membersRes.json();
-          throw new Error(err.message || 'Не удалось загрузить участников');
-        }
         const membersData = await membersRes.json();
-
+        if (!membersRes.ok) {
+          throw new Error(membersData.message || 'Не удалось загрузить участников');
+        }
+        
         const queriesRes = await fetch(`${API_URL}/user/members/query`, {
           method: 'GET',
           headers: {
@@ -57,11 +69,10 @@ const CompanyPage = () => {
           },
         });
 
-        if (!queriesRes.ok) {
-          const err = await queriesRes.json();
-          throw new Error(err.message || 'Не удалось загрузить заявки');
-        }
         const queriesData = await queriesRes.json();
+        if (!queriesRes.ok) {
+          throw new Error(queriesData.message || 'Не удалось загрузить заявки');
+        }
 
         setMembers(membersData);
         setQueries(queriesData);
@@ -73,9 +84,14 @@ const CompanyPage = () => {
     };
 
     fetchData();
-  }, [token]);
+  }, [token, payload, role, search]);
 
-  const getRowStyle = (index) => (index % 2 === 0 ? styles.trEven : styles.trOdd);
+  const getRowStyle = (index, id) =>  {
+    if (id === payload.id) {
+      return styles.trCurrentUser;
+    }
+    return index % 2 === 0 ? styles.trEven : styles.trOdd;
+  }
 
   const handleAccept = async (id) => {
     try {
@@ -86,13 +102,31 @@ const CompanyPage = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-
+      const resData = await res.json();
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || 'Ошибка при принятии заявки');
+        throw new Error(resData.message || 'Ошибка при принятии заявки');
       }
 
       setQueries((prev) => prev.filter((q) => q.id !== id));
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const handleRemove = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/user/members/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Ошибка при удалении участника');
+      }
+      setMembers((prev) => prev.filter((m) => m.id !== id));
     } catch (e) {
       alert(e.message);
     }
@@ -107,9 +141,41 @@ const CompanyPage = () => {
 
       {!loading && !error && (
         <>
+          <div style={{ marginBottom: "0.5rem" }}>
+            <label htmlFor="roleFilter" style={{ marginRight: "0.5rem" }}>
+              Фильтр по роли:
+            </label>
+            <select
+              id="roleFilter"
+              value={role || ""}
+              onChange={(e) => setRole(e.target.value || null)}
+              style={{ padding: "0.5rem", borderRadius: "6px", border: "1px solid #ccc" }}
+            >
+              <option value="">Все</option>
+              <option value="emp">Сотрудник</option>
+              <option value="hr">HR-менеджер</option>
+              <option value="ceo">Руководитель</option>
+            </select>
+          </div>
+          <div>
+            <input
+              type="text"
+              placeholder="Поиск по имени или фамилии"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                padding: "0.5rem",
+                marginBottom: "0.5rem",
+                borderRadius: "6px",
+                border: "1px solid #ccc",
+                minWidth: "250px"
+              }}
+            />
+          </div>
+
           <section style={styles.section}>
             <h2 style={styles.sectionTitle}>Участники</h2>
-            {members.length === 0 ? (
+            {sortedMembers.length === 0 ? (
               <p>Нет участников</p>
             ) : (
               <div style={styles.tableContainer}>
@@ -117,24 +183,26 @@ const CompanyPage = () => {
                   <thead>
                     <tr>
                       <th style={styles.th}>ID</th>
-                      <th style={styles.th}>Email</th>
+                      <th style={styles.th}>Логин</th>
                       <th style={styles.th}>Роль</th>
                       <th style={styles.th}>Имя</th>
                       <th style={styles.th}>Фамилия</th>
-                      <th style={styles.th}>Отдел</th>
-                      <th style={styles.th}>Телефон</th>
+                      <th style={styles.th}>Действия</th>
                     </tr>
                   </thead>
                   <tbody>
                     {members.map((m, i) => (
-                      <tr key={m.id} style={getRowStyle(i)}>
+                      <tr key={m.id} style={getRowStyle(i, m.id)}>
                         <td style={styles.td}>{m.id}</td>
-                        <td style={styles.td}>{m.email}</td>
+                        <td style={styles.td}><Link to={`/dashboard/main/${m.id}`} style={{ color: "black"}}>{m.email}</Link></td>
                         <td style={styles.td}>{m.role}</td>
                         <td style={styles.td}>{m.name}</td>
                         <td style={styles.td}>{m.surname}</td>
-                        <td style={styles.td}>{m.department || '-'}</td>
-                        <td style={styles.td}>{m.phone || '-'}</td>
+                        <td style={styles.td}>
+                          <button style={styles.removeButton} onClick={() => handleRemove(m.id)}>
+                            Удалить
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -143,7 +211,7 @@ const CompanyPage = () => {
             )}
           </section>
 
-          {(role === "hr" || role === "ceo") && (
+          {(payload.role === "hr" || payload.role === "ceo") && (
             <section style={styles.section}>
               <h2 style={styles.sectionTitle}>Заявки на вступление</h2>
               {queries.length === 0 ? (
@@ -154,12 +222,10 @@ const CompanyPage = () => {
                     <thead>
                       <tr>
                         <th style={styles.th}>ID</th>
-                        <th style={styles.th}>Email</th>
+                        <th style={styles.th}>Логин</th>
                         <th style={styles.th}>Роль</th>
                         <th style={styles.th}>Имя</th>
                         <th style={styles.th}>Фамилия</th>
-                        <th style={styles.th}>Отдел</th>
-                        <th style={styles.th}>Телефон</th>
                         <th style={styles.th}>Действия</th>
                       </tr>
                     </thead>
@@ -167,14 +233,14 @@ const CompanyPage = () => {
                       {queries.map((q, i) => (
                         <tr key={q.id} style={getRowStyle(i)}>
                           <td style={styles.td}>{q.id}</td>
-                          <td style={styles.td}>{q.email}</td>
+                          <td style={styles.td}><Link to={`/dashboard/main/${q.id}`} style={{ color: "black"}}>{q.email}</Link></td>
                           <td style={styles.td}>{q.role}</td>
                           <td style={styles.td}>{q.name}</td>
                           <td style={styles.td}>{q.surname}</td>
-                          <td style={styles.td}>{q.department || '-'}</td>
-                          <td style={styles.td}>{q.phone || '-'}</td>
                           <td style={styles.td}>
-                            <button onClick={() => handleAccept(q.id)}>Добавить</button>
+                            <button style={styles.removeButton} onClick={() => handleAccept(q.id)}>
+                              Добавить
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -199,6 +265,7 @@ const styles = {
     margin: "auto",
     backgroundColor: "#f7f9fc",
     minHeight: "100vh",
+    borderRadius: "12px",
   },
   title: {
     fontSize: "2rem",
@@ -243,10 +310,35 @@ const styles = {
   trOdd: {
     backgroundColor: "white",
   },
+  trCurrentUser: {
+    backgroundColor: "rgb(230, 230, 230)",
+    fontWeight: "bold",
+  },
   td: {
     padding: "12px 15px",
     borderBottom: "1px solid #ddd",
   },
+  // acceptButton: {
+  //   backgroundColor: '#3498db',
+  //   color: '#fff',
+  //   border: 'none',
+  //   borderRadius: '6px',
+  //   padding: '8px 14px',
+  //   cursor: 'pointer',
+  //   fontSize: '14px',
+  //   transition: 'background-color 0.3s ease',
+  // },
+  removeButton: {
+    backgroundColor: '#e0e0e0',
+    color: '#333',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '6px 12px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    transition: 'background-color 0.3s ease',
+  },
+
 };
 
 export default CompanyPage;

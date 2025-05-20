@@ -86,7 +86,7 @@ function Register() {
         <form onSubmit={handleSubmit} style={styles.form}>
           {error && <div style={styles.error}>{error}</div>}
 
-          <label style={styles.label}>Email*</label>
+          <label style={styles.label}>Email</label>
           <input
             type="login"
             value={email}
@@ -96,7 +96,7 @@ function Register() {
             required
           />
 
-          <label style={styles.label}>Пароль*</label>
+          <label style={styles.label}>Пароль</label>
           <input
             type="password"
             value={password}
@@ -106,7 +106,7 @@ function Register() {
             required
           />
 
-          <label style={styles.label}>Подтверждение пароля*</label>
+          <label style={styles.label}>Подтверждение пароля</label>
           <input
             type="password"
             value={confirmPassword}
@@ -145,7 +145,7 @@ function Register() {
           />
 
 
-          <label style={styles.label}>Роль*</label>
+          <label style={styles.label}>Роль</label>
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
@@ -159,7 +159,7 @@ function Register() {
           </select>
 
           
-          <label style={styles.label}>Название компании*</label>
+          <label style={styles.label}>Название компании</label>
           <input
             type="text"
             value={companyName}
@@ -167,7 +167,7 @@ function Register() {
             style={styles.input}
             placeholder={role !== "ceo" ? "Введите название компании" : "Придумайте название компании"}
           />
-        <label style={styles.label}>Пароль компании*</label>
+        <label style={styles.label}>Пароль компании</label>
         <input
             type="password"
             value={companyPassword}

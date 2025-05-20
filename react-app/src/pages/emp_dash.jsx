@@ -3,16 +3,30 @@ import { useParams, Link } from "react-router-dom";
 
 const API_URL = 'http://localhost:5000/api'
 
+
 const EmployeeDashboard = () => {
   const { id } = useParams()
   const [kpiValues, setKpiValues] = useState([]);
   const [achieves, setAchieves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [owner, setOwner] = useState(null);
   const token = localStorage.getItem("token")
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const ownerRes = await fetch(`${API_URL}/user/profile/${id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const ownerData = await ownerRes.json();
+        if (!ownerRes.ok) {
+          throw new Error(ownerData.message || 'Ошибка при получении пользвателя');
+        }
+        setOwner(ownerData)
+
         const kpiRes = await fetch(`${API_URL}/kpi/vals/${id}`, {
           method: 'GET',
           headers: {
@@ -59,6 +73,11 @@ const EmployeeDashboard = () => {
 
   return (
     <div style={styles.container}>
+      <header style={styles.header}>
+        <h1>Страница пользователя</h1>
+        <h2>{owner ? `${owner.name || owner.login} ${owner.surname || ""}` : "Загрузка..."}</h2>
+      </header>
+
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Показатели</h2>
 
@@ -70,6 +89,12 @@ const EmployeeDashboard = () => {
             <div key={kpi.id} style={styles.card}>
               <p style={styles.cardTitle}>{kpi.kpi_type.name}</p>
               <p style={styles.cardValue}>{kpi.value}</p>
+              <Link
+                to={`/dashboard/kpiCard/${id}/${kpi.kpi_type.id}`}
+                style={styles.linkButton}
+              >
+                Перейти →
+              </Link>
             </div>
           ))}
         </div>
@@ -83,7 +108,7 @@ const EmployeeDashboard = () => {
           <ul style={styles.achieveList}>
             {achieves.map((a) => (
               <li key={a.id} style={styles.achieveItem}>
-                <Link to={`/dashboard/main/${a.id}`} style={{ textDecoration: 'none', color: 'black' }}>
+                <Link to={`/dashboard/achievement/${a.id}`} style={{ textDecoration: 'none', color: 'black' }}>
                   <strong>{a.name}</strong>
                 </Link> — {a.achieve_type?.name || "Неизвестно"}, {a.date}
               </li>
@@ -148,6 +173,19 @@ const styles = {
     color: "#555",
     marginTop: "1rem",
   },
+  linkButton: {
+    display: 'inline-block',
+    marginTop: '1rem',
+    padding: '0.4rem 0.8rem',
+    backgroundColor: "#0056b3",
+    color: '#fff',
+    textDecoration: 'none',
+    borderRadius: '6px',
+    textAlign: 'center',
+    fontSize: '0.9rem',
+    transition: 'background 0.2s',
+  },
+
   achieveList: {
     listStyle: "none",
     padding: 0,

@@ -9,6 +9,9 @@ import CreateAchievement from './pages/createAchieve'
 import CreateKpiType from "./pages/createKpiType";
 import CreateKpiValue from "./pages/createKpi";
 import CompanyPage from "./pages/company";
+import AchievementPage from "./pages/achieveCard";
+import AchievementsPage from "./pages/achievesTable";
+import KpiCard from "./pages/kpiCard";
 
 
 function App() {
@@ -25,6 +28,9 @@ function App() {
           <Route path="createKpiType" element={<CreateKpiType />} />
           <Route path="createKpi" element={<CreateKpiValue />} />
           <Route path="company" element={<CompanyPage />} />
+          <Route path="achievement/:id" element={<AchievementPage />} />
+          <Route path="achievements" element={<AchievementsPage />} />
+          <Route path="kpiCard/:userId/:kpiTypeId" element={<KpiCard />} />
         </Route>
         
       </Routes>
