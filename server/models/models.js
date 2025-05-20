@@ -61,6 +61,7 @@ const KPI_type = sequelize.define('kpi_type', {
 
 const KPI_value = sequelize.define('kpi_value', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    isLast: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true},
     value: { type: DataTypes.FLOAT, allowNull: false },
     startDate: {type: DataTypes.DATEONLY},
     endDate: {type: DataTypes.DATEONLY},

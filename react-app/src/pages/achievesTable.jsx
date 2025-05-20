@@ -5,6 +5,12 @@ import { Link } from "react-router-dom";
 
 const API_URL = "http://localhost:5000/api";
 
+const roles = {
+  "ceo": "Руководитель",
+  "hr": "HR",
+  "emp": "Сотрудник",
+};
+
 function parseJwt(token) {
   try {
     const base64Url = token.split(".")[1];
@@ -29,6 +35,9 @@ const AchievementsPage = () => {
   const [roleFilter, setRoleFilter] = useState("");
   const [search, setSearch] = useState("");
   const [types, setTypes] = useState([]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
   const token = localStorage.getItem("token");
   const payload = token ? parseJwt(token) : null;
 
@@ -44,7 +53,13 @@ const AchievementsPage = () => {
           setTypes(await typesRes.json());
         }
 
-        const res = await fetch(`${API_URL}/achieve/all`, {
+        const params = new URLSearchParams();
+
+        if (typeFilter) params.append('typeId', typeFilter);
+        if (startDate) params.append('dateFrom', startDate);
+        if (endDate) params.append('dateTo', endDate);
+
+        const res = await fetch(`${API_URL}/achieve/all?${params.toString()}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -58,9 +73,10 @@ const AchievementsPage = () => {
     };
 
     fetchData();
-  }, [token]);
-
+  }, [token, typeFilter, startDate, endDate]);
   const displayed = achievements
+    .slice()
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
     .filter((a) =>
       (!typeFilter || a.typeName === types.find(t => t.id === +typeFilter)?.name)
     )
@@ -121,6 +137,18 @@ const AchievementsPage = () => {
           <option value="hr">HR</option>
           <option value="emp">Сотрудник</option>
         </select>
+        <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            style={styles.inputDate}
+        />
+        <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            style={styles.inputDate}
+        />
 
         <input
           type="text"
@@ -150,9 +178,9 @@ const AchievementsPage = () => {
                 <td style={styles.td}>
                   {a.user.name} {a.user.surname}
                 </td>
-                <td style={styles.td}>{a.user.role}</td>
+                <td style={styles.td}>{roles[a.user.role]}</td>
                 <td style={styles.td}>{a.typeName}</td>
-                <td style={styles.td}>{a.name}</td>
+                <td style={styles.td}><Link to={`/dashboard/achievement/${a.id}`} style={{color: "black"}}>{a.name}</Link></td>
                 <td style={styles.td}>
                   {format(parseISO(a.date), "dd.MM.yyyy")}
                 </td>
@@ -218,6 +246,13 @@ const styles = {
     borderRadius: "6px",
     border: "1px solid #ccc",
   },
+  inputDate: {
+    padding: "0.5rem",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    minWidth: "160px",
+    },
+
   inputSearch: {
     padding: "0.5rem",
     borderRadius: "6px",

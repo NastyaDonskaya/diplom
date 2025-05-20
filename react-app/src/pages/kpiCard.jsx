@@ -151,14 +151,14 @@ const styles = {
   wrapper: {
     minHeight: "100vh",
     padding: "2rem",
-    background: "linear-gradient(to right, #e4eff7, #a6c7f7)", // градиентный фон
+    background: "linear-gradient(to right, #e4eff7, #a6c7f7)",
     fontFamily: "Segoe UI, sans-serif",
     display: "flex",
     justifyContent: "center",
     alignItems: "flex-start",
   },
   container: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)", // белый с прозрачностью
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: "12px",
     padding: "2rem",
     boxShadow: "0 8px 20px rgba(0,0,0,0.1)",

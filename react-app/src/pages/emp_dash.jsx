@@ -27,7 +27,7 @@ const EmployeeDashboard = () => {
         }
         setOwner(ownerData)
 
-        const kpiRes = await fetch(`${API_URL}/kpi/vals/${id}`, {
+        const kpiRes = await fetch(`${API_URL}/kpi/lastvals/${id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

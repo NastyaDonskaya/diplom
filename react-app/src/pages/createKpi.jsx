@@ -26,6 +26,7 @@ export default function CreateKpiValue() {
     const fetchUsers = async () => {
       try {
         const res = await fetch('http://localhost:5000/api/user/members', {
+          method: 'GET',
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();

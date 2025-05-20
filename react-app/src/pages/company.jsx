@@ -156,8 +156,6 @@ const CompanyPage = () => {
               <option value="hr">HR-менеджер</option>
               <option value="ceo">Руководитель</option>
             </select>
-          </div>
-          <div>
             <input
               type="text"
               placeholder="Поиск по имени или фамилии"
@@ -166,13 +164,13 @@ const CompanyPage = () => {
               style={{
                 padding: "0.5rem",
                 marginBottom: "0.5rem",
+                marginLeft: "0.5rem",
                 borderRadius: "6px",
                 border: "1px solid #ccc",
                 minWidth: "250px"
               }}
             />
           </div>
-
           <section style={styles.section}>
             <h2 style={styles.sectionTitle}>Участники</h2>
             {sortedMembers.length === 0 ? (
@@ -187,7 +185,7 @@ const CompanyPage = () => {
                       <th style={styles.th}>Роль</th>
                       <th style={styles.th}>Имя</th>
                       <th style={styles.th}>Фамилия</th>
-                      <th style={styles.th}>Действия</th>
+                      {(payload.role === 'hr' || payload.role === 'ceo') && <th style={styles.th}>Действия</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -198,11 +196,13 @@ const CompanyPage = () => {
                         <td style={styles.td}>{m.role}</td>
                         <td style={styles.td}>{m.name}</td>
                         <td style={styles.td}>{m.surname}</td>
-                        <td style={styles.td}>
-                          <button style={styles.removeButton} onClick={() => handleRemove(m.id)}>
-                            Удалить
-                          </button>
-                        </td>
+                        { (payload.role === 'hr' || payload.role === 'ceo') &&
+                          <td style={styles.td}>
+                            <button style={styles.removeButton} onClick={() => handleRemove(m.id)}>
+                              Удалить
+                            </button>
+                          </td>
+                        }
                       </tr>
                     ))}
                   </tbody>

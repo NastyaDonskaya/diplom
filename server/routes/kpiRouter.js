@@ -7,5 +7,6 @@ const authMiddleware = require('../middleware/authMiddleware')
 router.post('/', checkRoleMiddleware('hr'), KpiController.create) 
 router.get('/vals/:userId/:kpiTypeId', authMiddleware, KpiController.getValues)
 router.get('/vals/:userId', authMiddleware, KpiController.getValues)
+router.get('/lastvals/:userId', authMiddleware, KpiController.getLastValues)
 
 module.exports = router

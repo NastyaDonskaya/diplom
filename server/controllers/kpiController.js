@@ -111,7 +111,33 @@ class KpiController {
             }
             const vals = await KPI_value.findAll({
                 where: whereFilter,
-                include: [{ model: KPI_type}]
+                include: [{ model: KPI_type }]
+            })
+            return res.json(vals)
+        } catch (e) {
+            return next(ApiError.badReq(e.message))
+        }
+    }
+
+    async getLastValues (req, res, next) {
+        const { userId } = req.params
+
+        const user = await User.findByPk(userId)
+        if (!user) {
+            return next(ApiError.badReq('Пользователь не найден'))        
+        }
+
+        if (req.user.role !== 'hr' && req.user.id !== +userId || req.user.role === 'hr' && req.user.companyId !== user.companyId) {
+            return next(ApiError.badReq('Нет доступа'))
+        }
+
+        if (!userId) {
+            return next(ApiError.badReq('Введите id пользователя'))
+        }
+        try {
+            const vals = await KPI_value.findAll({
+                where: {userId, isLast: true},
+                include: [{ model: KPI_type }]
             })
             return res.json(vals)
         } catch (e) {

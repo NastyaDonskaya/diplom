@@ -7,13 +7,21 @@ const { where, Op } = require('sequelize')
 
 async function recalculate (userId) {
     const user = await User.findByPk(userId)
-    const vals = await KPI_value.findAll({
-        where: {userId},
+    const lastVals = await KPI_value.findAll({
+        where: {userId, isLast: true},
         include: [{model: KPI_type}]
     })
-    for (let val of vals) {
+    for (let val of lastVals) {
         const kpiType = val.kpi_type
+        await val.update({ isLast: false });
         if (kpiType === 'DEF') {
+            await KPI_value.create({
+                kpiTypeId: kpiType.id,
+                userId,
+                value: val.value,
+                description: val.description,
+                isLast: true
+            });
             continue
         }
         const calc = kpiType.calculationType
@@ -66,8 +74,13 @@ async function recalculate (userId) {
         } else {
             return ApiError.badReq('Неверный тип рассчета')
         } 
-        val.value = result
-        await val.save()
+        await KPI_value.create({
+            kpiTypeId: kpiType.id,
+            userId,
+            value: result,
+            description: val.description,
+            isLast: true
+        });
     }
 }
 
@@ -224,12 +237,12 @@ class AchiveController {
     
                 const user = await User.findOne({
                     where: { id: achieve.userId },
-                    attributes: ['id', 'name', 'surname']
+                    attributes: ['id', 'name', 'surname', 'role']
                 });
 
                 result.push({
                     id: achieve.id,
-                    user: user ? { id: user.id, name: user.name, surname: user.surname } : null,
+                    user: user ? { id: user.id, name: user.name, surname: user.surname, role: user.role} : null,
                     name: achieve.name,
                     description: achieve.description,
                     date: achieve.date,
@@ -251,7 +264,7 @@ class AchiveController {
             const { name, description, date, attributes } = req.body
             const user = await User.findByPk(req.user.id)
 
-            const achieve = Achievement.findByPk(id)
+            const achieve = await Achievement.findByPk(id)
             if (!achieve) {
                 return next(ApiError.badReq('достижение не найдено'))
             }

@@ -18,6 +18,10 @@ function parseJwt(token) {
   }
 }
 
+const handleLogout = () => {
+  localStorage.removeItem("token");
+}
+
 const API_URL = 'http://localhost:5000/api'
 
 const DashboardLayout = () => {
@@ -53,6 +57,7 @@ const DashboardLayout = () => {
           <nav style={styles.nav}>
             <Link style={styles.link} to={`/dashboard/main/${payload.id}`}>Главная</Link>
             <Link style={styles.link} to="/dashboard/achievements">Достижения</Link>
+            <Link style={styles.link} to="/dashboard/kpis">Показатели</Link>
             <Link style={styles.link} to="/reports">Отчеты</Link>
             <Link style={styles.link} to="/dashboard/company">Компания</Link>
           </nav>
@@ -71,6 +76,7 @@ const DashboardLayout = () => {
               {payload.name} {payload.surname} ({payload.role})
             </Link>
             <div style={styles.date}>{new Date().toLocaleDateString("ru-RU")}</div>
+            <button onClick={handleLogout} style={styles.logoutBtn}><Link to='/login' style={{textDecoration: "none", color: "black"}}>Выход</Link></button>
           </div>
         </header>
         <div style={styles.content}>
@@ -118,6 +124,20 @@ const styles = {
     color: "#ffffff",
     cursor: "pointer",
   },
+
+  logoutBtn: {
+    marginLeft: "1rem",
+    backgroundColor: "rgb(255, 255, 255)",
+    color: "#2c3e50",
+    border: "1px solid #cdddec",
+    padding: "0.4rem 0.8rem",
+    borderRadius: "6px",
+    fontSize: "0.9rem",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+  },
+
+
 
   sidebar: {
     width: "240px",
