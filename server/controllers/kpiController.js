@@ -5,6 +5,10 @@ const {KPI_value, KPI_type, Achievement, AchievementAttributeValue, AchievementT
 class KpiController {
     async create(req, res, next) {
         try {
+            const user = await User.findByPk(req.user.id);
+            if (user.isActive === false) {
+                return next(ApiError.badReq('Нет доступа'));
+            }
             const { kpiTypeId, userId, value, description } = req.body
 
             if (!kpiTypeId || !userId) {
@@ -14,6 +18,11 @@ class KpiController {
             const kpiType = await KPI_type.findByPk(kpiTypeId)
             if (!kpiType) {
                 return next(ApiError.badReq('Тип кпи не найден'))
+            }
+
+            const lastVals = await KPI_value.findAll({where: {userId, kpiTypeId, isLast: true}});
+            for (let val of lastVals) {
+                await val.update({ isLast: false })
             }
 
             const calc = kpiType.calculationType
@@ -92,12 +101,14 @@ class KpiController {
     async getValues (req, res, next) {
         const { userId, kpiTypeId } = req.params
 
-        const user = await User.findByPk(userId)
-        if (!user) {
+        const owner = await User.findByPk(userId)
+        if (!owner) {
             return next(ApiError.badReq('Пользователь не найден'))        
         }
 
-        if (req.user.role !== 'hr' && req.user.id !== +userId || req.user.role === 'hr' && req.user.companyId !== user.companyId) {
+        const user = await User.findByPk(req.user.id);
+
+        if (req.user.role !== 'hr' && req.user.id !== +userId || req.user.role === 'hr' && req.user.companyId !== owner.companyId || user.isActive === false) {
             return next(ApiError.badReq('Нет доступа'))
         }
 
@@ -122,12 +133,14 @@ class KpiController {
     async getLastValues (req, res, next) {
         const { userId } = req.params
 
-        const user = await User.findByPk(userId)
-        if (!user) {
+        const owner = await User.findByPk(userId)
+        if (!owner) {
             return next(ApiError.badReq('Пользователь не найден'))        
         }
 
-        if (req.user.role !== 'hr' && req.user.id !== +userId || req.user.role === 'hr' && req.user.companyId !== user.companyId) {
+        const user = await User.findByPk(req.user.id);
+
+        if (req.user.role !== 'hr' && req.user.id !== +userId || req.user.role === 'hr' && req.user.companyId !== owner.companyId || user.isActive === false) {
             return next(ApiError.badReq('Нет доступа'))
         }
 

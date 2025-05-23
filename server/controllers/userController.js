@@ -102,6 +102,10 @@ class UserController {
 
     async getProfile (req, res, next) {
         const {id} = req.params
+        const user = await User.findByPk(req.user.id);
+        if (user.isActive === false) {
+            return next(ApiError.badReq('Нет доступа'));
+        }
         try {
             const userProfile = await User.findOne({
                 where: {id},

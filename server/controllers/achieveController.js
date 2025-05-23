@@ -6,14 +6,13 @@ const { where, Op } = require('sequelize')
 
 
 async function recalculate (userId) {
-    const user = await User.findByPk(userId)
     const lastVals = await KPI_value.findAll({
         where: {userId, isLast: true},
         include: [{model: KPI_type}]
     })
     for (let val of lastVals) {
         const kpiType = val.kpi_type
-        await val.update({ isLast: false });
+        await val.update({ isLast: false })
         if (kpiType === 'DEF') {
             await KPI_value.create({
                 kpiTypeId: kpiType.id,
@@ -146,6 +145,7 @@ class AchiveController {
 
     // свои достижения
     async getMine(req, res, next) {
+        
         try {
             const userId = req.user.id
             const { typeId } = req.query; // для фильтрации

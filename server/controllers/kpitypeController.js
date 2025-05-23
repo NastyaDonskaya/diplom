@@ -1,5 +1,5 @@
 const ApiError = require('../error/apiError')
-const {KPI_type} = require('../models/models')
+const {KPI_type, User} = require('../models/models')
 
 const PERIOD_TYPES = ['DAY', 'WEEK', 'MOUNTH', 'YEAR', 'NONE']
 const CALC_TYPES = ['SUM', 'COUNT', 'AVG', 'MAX', 'MIN', 'DEF']
@@ -7,6 +7,10 @@ const CALC_TYPES = ['SUM', 'COUNT', 'AVG', 'MAX', 'MIN', 'DEF']
 class KpiTypeController {
 
     async create(req, res, next) {
+        const user = await User.findByPk(req.user.id);
+        if (user.isActive === false) {
+            return next(ApiError.badReq('Нет доступа'));
+        }
         try {
             const {
                 name,
@@ -59,9 +63,17 @@ class KpiTypeController {
         }
     }
 
-    async getAll(req, res) {
-        const kpi_types = await KPI_type.findAll()
-        return res.json(kpi_types)
+    async getAll(req, res, next) {
+        const user = await User.findByPk(req.user.id);
+        if (user.isActive === false) {
+            return next(ApiError.badReq('Нет доступа'));
+        }
+        try {
+            const kpi_types = await KPI_type.findAll()
+            return res.json(kpi_types)
+        } catch (e) {
+            return next(ApiError.badReq(e.message))
+        }
     }
 
 }
