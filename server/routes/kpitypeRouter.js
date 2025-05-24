@@ -2,8 +2,9 @@ const Router = require('express')
 const router = new Router()
 const kpitypeController = require('../controllers/kpitypeController')
 const checkRoleMiddleware = require('../middleware/checkRoleMiddleware')
+const authMiddleware = require('../middleware/authMiddleware')
 
 router.post('/', checkRoleMiddleware('hr'), kpitypeController.create)
-router.get('/', kpitypeController.getAll)
+router.get('/', authMiddleware, kpitypeController.getAll)
 
 module.exports = router
