@@ -8,15 +8,59 @@ export default function CreateAchieveType() {
   ]);
 
   const handleAttributeChange = (index, field, value) => {
-    const updated = [...attributes];
-    updated[index][field] = value;
-    setAttributes(updated);
+    setAttributes(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      if (field === 'dataType') {
+        if (value === 'ENUM') {
+          const currentEnum = Array.isArray(updated[index].enumValues)
+            ? updated[index].enumValues
+            : [];
+
+          updated[index].enumValues = currentEnum.length ? currentEnum : [''];
+        } else {
+          delete updated[index].enumValues;
+        }
+      }
+      return updated;
+    });
+  };
+
+  const handleEnumValueChange = (attrIndex, valIndex, value) => {
+    setAttributes(prev => {
+      const updated = [...prev];
+      updated[attrIndex].enumValues[valIndex] = value;
+      return updated;
+    });
+  };
+
+  const addEnumValue = (attrIndex) => {
+    setAttributes(prev => {
+      return prev.map((attr, i) => {
+        if (i === attrIndex) {
+          return {
+            ...attr,
+            enumValues: [...(attr.enumValues || []), '']
+          };
+        }
+        return attr;
+      });
+    });
+  };
+
+
+  const removeEnumValue = (attrIndex, valIndex) => {
+    setAttributes(prev => {
+      const updated = [...prev];
+      updated[attrIndex].enumValues = updated[attrIndex].enumValues.filter((_, i) => i !== valIndex);
+      return updated;
+    });
   };
 
   const addAttribute = () => {
     setAttributes([
       ...attributes,
-      { name: '', dataType: 'STRING', isRequired: false },
+      { name: '', dataType: 'STRING', isRequired: false, enumValues: [] },
     ]);
   };
 
@@ -94,7 +138,8 @@ export default function CreateAchieveType() {
               >
                 <option value="STRING">Строка</option>
                 <option value="NUMBER">Число</option>
-                <option value="DATE">Дата</option>
+                <option value="ENUM">Выбор</option>
+                <option value="BOOLEAN">Да/Нет</option>
               </select>
               <label style={styles.checkboxLabel}>
                 <input
@@ -113,8 +158,44 @@ export default function CreateAchieveType() {
               >
                 ✕
               </button>
+
+              {attr.dataType === 'ENUM' && (
+                <div style={styles.enumContainer}>
+                  <label style={styles.enumLabel}>Варианты:</label>
+                  {attr.enumValues.map((val, vi) => (
+                    <div key={vi} style={styles.enumRow}>
+                      <input
+                        value={val}
+                        onChange={(e) =>
+                          handleEnumValueChange(index, vi, e.target.value)
+                        }
+                        placeholder="Вариант"
+                        required
+                        style={styles.enumInput}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeEnumValue(index, vi)}
+                        style={styles.removeEnumBtn}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addEnumValue(index)}
+                    style={styles.enumAddBtn}
+                  >
+                    + Добавить вариант
+                  </button>
+                </div>
+              )}
+
             </div>
           ))}
+
+          
 
           <button
             type="button"
@@ -205,6 +286,45 @@ const styles = {
     color: '#d93025',
     fontSize: '1.2rem',
     cursor: 'pointer',
+  },
+  enumContainer: {
+    marginTop: '0.5rem',
+    paddingLeft: '1rem',
+    borderLeft: '3px solid #0056b3',
+  },
+  enumLabel: {
+    fontWeight: '600',
+    fontSize: '0.9rem',
+    marginBottom: '0.25rem',
+  },
+  enumRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    marginBottom: '0.25rem',
+  },
+  enumInput: {
+    padding: '0.5rem',
+    borderRadius: '6px',
+    border: '1px solid #ccc',
+    flexGrow: 1,
+  },
+  removeEnumBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#d93025',
+    fontSize: '1.2rem',
+    cursor: 'pointer',
+  },
+  enumAddBtn: {
+    padding: '0.5rem',
+    backgroundColor: '#0077cc',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    marginTop: '0.25rem',
   },
   button: {
     padding: '0.85rem',

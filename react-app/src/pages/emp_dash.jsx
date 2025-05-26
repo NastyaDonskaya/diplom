@@ -116,7 +116,7 @@ const EmployeeDashboard = () => {
             {achieves.length > 5 && <li>И еще {achieves.length - 5} достижений...</li>}
           </ul>
         )}
-        <button style={styles.button}>Все достижения</button>
+        <Link to='/dashboard/achievements'><button style={styles.button}>Все достижения</button></Link>
       </section>
 
       {/* отчеты*/}

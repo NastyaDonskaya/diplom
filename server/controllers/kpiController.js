@@ -1,4 +1,3 @@
-const { where } = require('sequelize')
 const ApiError = require('../error/apiError')
 const {KPI_value, KPI_type, Achievement, AchievementAttributeValue, AchievementTypeAttribute, User} = require('../models/models')
 
@@ -150,13 +149,82 @@ class KpiController {
         try {
             const vals = await KPI_value.findAll({
                 where: {userId, isLast: true},
-                include: [{ model: KPI_type }]
+                include: [
+                    {model: KPI_type, attributes: ['id', 'name']},
+                    {model: User, attributes: ['id', 'name', 'surname', 'role']}
+                ]
             })
             return res.json(vals)
         } catch (e) {
             return next(ApiError.badReq(e.message))
         }
     }
+
+    async getCompanyLast (req, res, next) {
+        try {
+            const user = await User.findByPk(req.user.id)
+
+            const members = await User.findAll({
+                where: {companyId: user.companyId, isActive: true},
+                attributes: ['id']
+            })
+
+            const ids = members.map(m => m.id)
+
+            const { typeId } = req.query
+
+            const whereFilter = {userId: ids, isLast: true}
+            if (typeId) {
+                whereFilter.kpiTypeId = typeId
+            }
+
+            const vals = await KPI_value.findAll({
+                where: whereFilter,
+                include: [
+                    {model: KPI_type, attributes: ['id', 'name']},
+                    {model: User, attributes: ['id', 'name', 'surname', 'role']}
+                ]
+            })
+
+            return res.json(vals)
+        } catch (e) {
+            return next(ApiError.badReq(e.message))
+        }
+    }
+
+    async getAll(req, res, next) {
+        try {
+          const { typeId } = req.query
+
+          const whereFilter = {}
+          if (typeId) {
+            whereFilter.kpiTypeId = typeId
+          }
+
+          const kpis = await KPI_value.findAll({
+            whereFilter,
+            include: [
+              { model: KPI_type },
+              {
+                model: User,
+                attributes: ['id', 'name', 'surname', 'role'],
+              },
+            ],
+          })
+
+          const data = kpis.map((k) => ({
+            id: k.id,
+            value: k.value,
+            date: k.date,
+            typeName: k.kpi_type.name,
+            user: k.user,
+          }))
+
+          return res.json(data)
+        } catch (e) {
+            return next(ApiError.badReq(e.message)) 
+        }
+  }
 }
 
 module.exports = new KpiController;

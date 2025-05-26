@@ -12,6 +12,7 @@ import CompanyPage from "./pages/company";
 import AchievementPage from "./pages/achieveCard";
 import AchievementsPage from "./pages/achievesTable";
 import KpiCard from "./pages/kpiCard";
+import KPI_table from "./pages/kpiTable";
 
 
 function App() {
@@ -31,6 +32,8 @@ function App() {
           <Route path="achievement/:id" element={<AchievementPage />} />
           <Route path="achievements" element={<AchievementsPage />} />
           <Route path="kpiCard/:userId/:kpiTypeId" element={<KpiCard />} />
+          <Route path="kpis" element={< KPI_table/>} />
+          {/* <Route path="userReport" element={<UserReportPage/>} /> */}
         </Route>
         
       </Routes>

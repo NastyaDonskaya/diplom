@@ -82,7 +82,7 @@ function ProfilePage() {
 
 const styles = {
   wrapper: {
-    minHeight: "100vh",
+    minHeight: "70vh",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",

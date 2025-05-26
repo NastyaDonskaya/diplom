@@ -24,12 +24,18 @@ class AchievetypeController {
 
             if (Array.isArray(attributes)) {
                 for (const a of attributes) {
-                    const {name, dataType, isRequired} = a
+                    const {name, dataType, isRequired, enumValues} = a
+
+                    if (dataType === 'ENUM' && (!Array.isArray(enumValues) || enumValues.length === 0)) {
+                        return next(ApiError.badReq('Укажите варианты значений'));
+                    }
+
                     await AchievementTypeAttribute.create({
                         name, 
                         dataType,
                         isRequired: isRequired || false,
-                        achieveTypeId: achievementType.id
+                        achieveTypeId: achievementType.id,
+                        enumValues: dataType === 'ENUM' ? enumValues : null
                     })
                 }
             }

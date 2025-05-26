@@ -1,27 +1,72 @@
 import { useEffect, useState } from 'react';
 
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error("Ошибка парсинга токена:", e);
+    return null;
+  }
+}
+
 export default function CreateAchievement() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
+  const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState('');
   const [achieveTypes, setAchieveTypes] = useState([]);
   const [selectedTypeId, setSelectedTypeId] = useState('');
   const [attributes, setAttributes] = useState([]);
   const [values, setValues] = useState({});
 
+
   const token = localStorage.getItem('token');
+  const API_URL = "http://localhost:5000/api";
+  const payload = token ? parseJwt(token) : null;
+
+  const handleChange = (attrId, value) => {
+    setValues(prev => ({
+      ...prev,
+      [attrId]: value
+    }));
+  };
+
 
   useEffect(() => {
     const fetchTypes = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/achieve_type', {
+        const res = await fetch(`${API_URL}/achieve_type`, {
+          method: "GET",
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
         setAchieveTypes(data);
-      } catch  {
-        alert('Ошибка при загрузке типов достижений');
+        if (payload.role === 'emp') {
+          setUsers([{
+            id: payload.id,
+            name: payload.name,
+            surname: payload.surname,
+            email: payload.email
+          }])
+        } else {
+          const membersRes = await fetch(`${API_URL}/user/members`, {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const memversData = await membersRes.json();
+          setUsers(memversData);
+        }
+      } catch (e) {
+        alert(e.message);
       }
     };
 
@@ -103,8 +148,15 @@ export default function CreateAchievement() {
           <label style={styles.label}>Дата:</label>
           <input type="date" value={date} onChange={e => setDate(e.target.value)} style={styles.input} required />
 
-          <label style={styles.label}>ID пользователя:</label>
-          <input type="number" value={userId} onChange={e => setUserId(e.target.value)} style={styles.input} required />
+          <label style={styles.label}>Сотрудник:</label>
+          <select value={userId} onChange={e => setUserId(e.target.value)} style={styles.select} required>
+            <option value="">-- Выберите сотрудника --</option>
+            {users.map(user => (
+              <option key={user.id} value={user.id}>
+                {user.name} {user.surname} ({user.email})
+              </option>
+            ))}
+          </select>
 
           <label style={styles.label}>Тип достижения:</label>
           <select value={selectedTypeId} onChange={e => setSelectedTypeId(e.target.value)} style={styles.select} required>
@@ -118,15 +170,30 @@ export default function CreateAchievement() {
             <>
               <label style={styles.label}>Атрибуты:</label>
               {attributes.map(attr => (
-                <div key={attr.id} style={styles.attributeRow}>
-                  <label>{attr.name}:</label>
-                  <input
-                    type="text"
-                    value={values[attr.id] || ''}
-                    onChange={e => setValues({ ...values, [attr.id]: e.target.value })}
-                    style={styles.input}
-                    required={attr.isRequired}
-                  />
+                <div key={attr.id}>
+                  <label>{attr.name}</label>
+                  
+                  {attr.dataType === 'ENUM' ? (
+                    <select
+                      style={styles.select}
+                      value={values[attr.id] || ''}
+                      onChange={(e) => handleChange(attr.id, e.target.value)}
+                      required={attr.isRequired}
+                    >
+                      <option value="">-- Выберите --</option>
+                      {attr.enumValues.map(option => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      style={styles.input}
+                      type="text"
+                      value={values[attr.id] || ''}
+                      onChange={(e) => handleChange(attr.id, e.target.value)}
+                      required={attr.isRequired}
+                    />
+                  )}
                 </div>
               ))}
             </>

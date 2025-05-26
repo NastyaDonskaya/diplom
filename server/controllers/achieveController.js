@@ -83,7 +83,7 @@ async function recalculate (userId) {
     }
 }
 
-class AchiveController {
+class AchieveController {
 
     async create(req, res, next) {
         try {
@@ -194,7 +194,7 @@ class AchiveController {
             const members = await User.findAll({where: {companyId: hrUser.companyId}})
             const membersIds = members.map(e => e.id)
 
-            const {typeId, dateFrom, dateTo, ownerId} = req.query
+            const {typeId, dateFrom, dateTo } = req.query
 
             const whereFilter = {userId: membersIds}
             if (typeId) {
@@ -209,11 +209,24 @@ class AchiveController {
                     [Op.lte]: new Date(dateTo) 
                 } 
             }
-            if (ownerId) {
-                whereFilter.userId = ownerId 
-            }
 
-            const achievements = await Achievement.findAll({where: whereFilter})
+            const attrFilters = Object.entries(req.query)
+            .filter(([k,v]) => k.startsWith("attr_") && v)
+            .map(([k,v]) => ({
+                achieveTypeAttributeId: +k.slice(5),
+                value: v
+            }));
+
+            const include = attrFilters.map(f => ({
+                model: AchievementAttributeValue,
+                required: true,
+                where: {
+                    achieveTypeAttributeId: f.achieveTypeAttributeId,
+                    value: f.value
+                }
+            }))
+
+            const achievements = await Achievement.findAll({where: whereFilter, include })
             const result = []
 
             for (let achieve of achievements) {
@@ -297,6 +310,48 @@ class AchiveController {
         }
     }
 
+    async getAttributeValues (req, res, next) {
+        try {
+            const { typeId } = req.params
+            const user = await User.findByPk(req.user.id)
+
+            const members = await User.findAll({
+                where: {companyId: user.companyId, isActive: true},
+                attributes: ['id']
+            })
+            const ids = members.map(m => m.id)
+
+            const vars = await AchievementAttributeValue.findAll({
+                include: [{
+                    model: Achievement,
+                    where: {
+                        achieveTypeId: typeId,
+                        userId: ids
+                    },
+                    attributes: []
+                }, {
+                    model: AchievementTypeAttribute,
+                    where: { achieveTypeId: typeId },
+                    attributes: ['id','name']
+                }],
+                attributes: ['achieveTypeAttributeId','value'],
+                raw: true
+            })
+
+            const result = {}
+            vars.forEach(({ achieveTypeAttributeId, 'attrName': name, value }) => {
+                if (!result[achieveTypeAttributeId]) {
+                    result[achieveTypeAttributeId] = { attributeId: achieveTypeAttributeId, name, values: [] };
+                }
+                result[achieveTypeAttributeId].values.push(value);
+            });
+            
+            return res.json(result);
+        } catch (e) {
+            return next(ApiError.badReq(e.message))
+        }
+    }
+
     async delete(req, res, next) {
         try {
             const { id } = req.params
@@ -308,10 +363,11 @@ class AchiveController {
             }
         
             if (achieve.userId !== userId && req.user.role !== 'hr' && req.user.role !== 'ceo') {
-                return next(ApiError.forbidden("Нет доступа"));
+                return next(ApiError.forbidden("Нет доступа"))
             }
         
-            await achieve.destroy();
+            await achieve.destroy()
+            await recalculate(userId)
             return res.json({ message: "Удалено" });
         } catch (e) {
             return next(ApiError.badReq(e.message))
@@ -405,12 +461,61 @@ class AchiveController {
             return next(ApiError.badReq('Нет доступа'))
         }
 
+        const {typeId, dateFrom, dateTo} = req.query
+        const whereFilter = {userId}
+        if (typeId) {
+            whereFilter.achieveTypeId = typeId
+        }
+        if (dateFrom) {
+            whereFilter.date = { [Op.gte]: new Date(dateFrom) } 
+        }
+        if (dateTo) {
+            whereFilter.date = {
+                ...(whereFilter.date || {}),
+                [Op.lte]: new Date(dateTo) 
+            } 
+        }
+
         try {
-            const achieves = await Achievement.findAll({
-                where: {userId},
-                include: [{model: AchievementType}]
+            const achievements = await Achievement.findAll({
+                where: whereFilter
             })
-            return res.json(achieves)
+            const result = []
+            for (let achieve of achievements) {
+                const attrs = await AchievementAttributeValue.findAll({
+                    where: {achieveId: achieve.id}
+                })
+                const attrNames = await Promise.all(attrs.map(async (a) => {
+                    const attrType = await AchievementTypeAttribute.findOne({
+                        where: { id: a.achieveTypeAttributeId },
+                        attributes: ['name']
+                    })
+                    return {
+                        name: attrType ? attrType.name : 'Неизвестный атрибут',
+                        value: a.value,
+                    }
+                }))
+                const achieveType = await AchievementType.findOne({
+                    where: { id: achieve.achieveTypeId },
+                    attributes: ['name']
+                });
+    
+                const user = await User.findOne({
+                    where: { id: achieve.userId },
+                    attributes: ['id', 'name', 'surname', 'role']
+                });
+
+                result.push({
+                    id: achieve.id,
+                    user: user ? { id: user.id, name: user.name, surname: user.surname, role: user.role} : null,
+                    name: achieve.name,
+                    description: achieve.description,
+                    date: achieve.date,
+                    typeName: achieveType ? achieveType.name : 'Неизвестный тип',
+                    attributes: attrNames
+                });
+            }
+            return res.json(result)
         } catch (e) {
             return next(ApiError.badReq(e.message))
         }
@@ -418,4 +523,4 @@ class AchiveController {
     
 }
 
-module.exports = new AchiveController
+module.exports = new AchieveController

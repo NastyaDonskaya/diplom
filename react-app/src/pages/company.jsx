@@ -180,7 +180,6 @@ const CompanyPage = () => {
                 <table style={styles.table}>
                   <thead>
                     <tr>
-                      <th style={styles.th}>ID</th>
                       <th style={styles.th}>Логин</th>
                       <th style={styles.th}>Роль</th>
                       <th style={styles.th}>Имя</th>
@@ -191,7 +190,6 @@ const CompanyPage = () => {
                   <tbody>
                     {members.map((m, i) => (
                       <tr key={m.id} style={getRowStyle(i, m.id)}>
-                        <td style={styles.td}>{m.id}</td>
                         <td style={styles.td}><Link to={`/dashboard/main/${m.id}`} style={{ color: "black"}}>{m.email}</Link></td>
                         <td style={styles.td}>{m.role}</td>
                         <td style={styles.td}>{m.name}</td>

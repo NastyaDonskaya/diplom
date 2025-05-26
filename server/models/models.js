@@ -29,8 +29,9 @@ const AchievementType = sequelize.define('achieve_type', {
 const AchievementTypeAttribute = sequelize.define('achieve_type_attribute', {
     id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
     name: {type: DataTypes.STRING, allowNull: false },
-    dataType: {type: DataTypes.ENUM('STRING', 'NUMBER', 'BOOLEAN')},
-    isRequired: { type: DataTypes.BOOLEAN, defaultValue: false }
+    dataType: {type: DataTypes.ENUM('STRING', 'NUMBER', 'BOOLEAN', 'ENUM')},
+    isRequired: { type: DataTypes.BOOLEAN, defaultValue: false },
+    enumValues: {type: DataTypes.JSON, allowNull: true}
 })
 
 const AchievementAttributeValue = sequelize.define('achieve_attribute_value', {
@@ -68,6 +69,13 @@ const KPI_value = sequelize.define('kpi_value', {
     description: { type: DataTypes.TEXT }
 })
 
+const UserReport = sequelize.define('user_report', {
+    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    userId: {type: DataTypes.INTEGER, allowNull: false },
+    filePath: {type: DataTypes.TEXT, allowNull: false},
+    date: {type: DataTypes.DATE}
+})
+
 Company.hasMany(User)  
 User.belongsTo(Company) 
 
@@ -100,6 +108,9 @@ KPI_value.belongsTo(KPI_type)
 
 KPI_type.belongsTo(AchievementType)
 
+User.hasMany(UserReport)
+UserReport.belongsTo(User)
+
 module.exports = {
     User,
     Company, 
@@ -109,4 +120,5 @@ module.exports = {
     Achievement,
     KPI_type,
     KPI_value,
+    UserReport
 }   

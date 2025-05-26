@@ -37,6 +37,8 @@ const AchievementsPage = () => {
   const [types, setTypes] = useState([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [attrs, setAttrs] = useState([]);
+  const [attrValues, setAttrValues] = useState({});
 
   const token = localStorage.getItem("token");
   const payload = token ? parseJwt(token) : null;
@@ -58,10 +60,24 @@ const AchievementsPage = () => {
         if (typeFilter) params.append('typeId', typeFilter);
         if (startDate) params.append('dateFrom', startDate);
         if (endDate) params.append('dateTo', endDate);
-
-        const res = await fetch(`${API_URL}/achieve/all?${params.toString()}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        
+        Object.entries(attrValues).forEach(([key, value]) => {
+          if (value) params.append(`attr_${key}`, value);
         });
+
+        let res;
+
+        if (payload.role === 'emp') {
+          res = await fetch(`${API_URL}/achieve/all/${payload.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+        else {
+          // alert(`${API_URL}/achieve/all?${params.toString()}`);
+          res = await fetch(`${API_URL}/achieve/all?${params.toString()}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Не удалось загрузить данные");
         setAchievements(data);
@@ -73,13 +89,47 @@ const AchievementsPage = () => {
     };
 
     fetchData();
-  }, [token, typeFilter, startDate, endDate]);
+  }, [token, typeFilter, startDate, endDate, attrValues]);
+
+  useEffect(() => {
+    const fetchAttrs = async () => {
+      if (!typeFilter) {
+        setAttrs([]);
+        setAttrValues({});
+        return;
+      }
+      try {
+        const res = await fetch(`${API_URL}/achieve_type/${typeFilter}/attributes`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (!res.ok) throw new Error("Ошибка при загрузке атрибутов");
+        const data = await res.json();
+        const valsRes = await fetch(`${API_URL}/achieve/attr-values/${typeFilter}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const valsData = await valsRes.json();
+
+        const m = data.map(attr => ({
+          id: attr.id, 
+          name: attr.name,
+          values: valsData[attr.id]?.values || []
+        }))
+        setAttrs(m);
+        setAttrValues({});
+      } catch (e) {
+        setAttrs([]);
+      }
+    }
+    fetchAttrs();
+  }, [typeFilter, token])
+
+  const attrChangeHandle = (id, value) => {
+    setAttrValues((prev) => ({ ...prev, [id]: value }));
+  };
+
   const displayed = achievements
     .slice()
     .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .filter((a) =>
-      (!typeFilter || a.typeName === types.find(t => t.id === +typeFilter)?.name)
-    )
     .filter((a) =>
       (!roleFilter || a.user.role === roleFilter)
     )
@@ -99,18 +149,20 @@ const AchievementsPage = () => {
 
   return (
     <div style={styles.wrapper}>
-      <h1 style={styles.title}>Все достижения компании</h1>
+      { payload.role !== 'emp' && <h1 style={styles.title}>Все достижения компании</h1> }
+      { payload.role === 'emp' && <h1 style={styles.title}>Ваши достижения</h1> }
 
-      {payload.role === 'hr' && (
-        <div style={styles.buttonGroup}>
-            <Link to="/dashboard/createAchieveType" style={styles.button}>
-            Создать тип достижения
-            </Link>
-            <Link to="/dashboard/createAchievement" style={styles.button}>
-            Добавить достижение
-            </Link>
-        </div>
-        )}
+      <div style={styles.buttonGroup}>
+        {payload.role === 'hr' && 
+          <Link to="/dashboard/createAchieveType" style={styles.button}>
+          Создать тип достижения
+          </Link>
+        }
+          <Link to="/dashboard/createAchievement" style={styles.button}>
+          Добавить достижение
+          </Link>
+      </div>
+        
 
 
       <div style={styles.controls}>
@@ -127,16 +179,18 @@ const AchievementsPage = () => {
           ))}
         </select>
 
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          style={styles.select}
-        >
-          <option value="">Все роли</option>
-          <option value="ceo">Руководитель</option>
-          <option value="hr">HR</option>
-          <option value="emp">Сотрудник</option>
-        </select>
+        { payload.role !== 'emp' && 
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            style={styles.select}
+          >
+            <option value="">Все роли</option>
+            <option value="ceo">Руководитель</option>
+            <option value="hr">HR</option>
+            <option value="emp">Сотрудник</option>
+          </select>
+        }
         <input
             type="date"
             value={startDate}
@@ -159,11 +213,42 @@ const AchievementsPage = () => {
         />
       </div>
 
+       {attrs.length>0 && (
+        <div style={{...styles.controls, marginTop:8}}>
+          {attrs.map(attr=>(
+            <div key={attr.id} style={{flex:1, minWidth:160}}>
+              <label style={{display:"block", marginBottom:4}}>
+                {attr.name}
+              </label>
+              {attr.values.length>0 ? (
+                <select
+                  style={styles.select}
+                  value={attrValues[attr.id]||""}
+                  onChange={e=>attrChangeHandle(attr.id, e.target.value)}
+                >
+                  <option value="">— Любое —</option>
+                  {attr.values.map(v=>(
+                    <option key={v} value={v}>{v}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  style={styles.inputSearch}
+                  placeholder={attr.name}
+                  value={attrValues[attr.id]||""}
+                  onChange={e=>attrChangeHandle(attr.id, e.target.value)}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div style={styles.tableContainer}>
         <table style={styles.table}>
           <thead>
             <tr>
-              <th style={styles.th}>ID</th>
               <th style={styles.th}>Пользователь</th>
               <th style={styles.th}>Роль</th>
               <th style={styles.th}>Тип</th>
@@ -174,7 +259,6 @@ const AchievementsPage = () => {
           <tbody>
             {displayed.map((a, i) => (
               <tr key={a.id} style={getRowStyle(i)}>
-                <td style={styles.td}>{a.id}</td>
                 <td style={styles.td}>
                   {a.user.name} {a.user.surname}
                 </td>
