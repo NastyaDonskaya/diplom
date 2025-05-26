@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -9,6 +9,28 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
+
+const roles = {
+  'ceo' : 'Руководитель',
+  'hr' : 'HR-менеджер',
+  'emp' : 'Сотрудник'
+}
+
+function parseJwt(token) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
 
 const API_URL = "http://localhost:5000/api";
 
@@ -20,6 +42,25 @@ const KpiCard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const token = localStorage.getItem("token");
+  const payload = token ? parseJwt(token) : null;
+
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(`${API_URL}/kpi/${userId}/${kpiTypeId}`, {
+        method: "DELETE",
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          }
+      })
+      if (!res.ok) {
+        const er = await res.json().message
+        throw new Error(er || 'Ошибка при удалении');
+      }
+      alert('Удален')
+    } catch (e) {
+      alert('Ошибка при удалении')
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -112,10 +153,10 @@ const KpiCard = () => {
               <strong>Фамилия:</strong> {userInfo.surname}
             </p>
             <p>
-              <strong>Роль:</strong> {userInfo.role}
+              <strong>Роль:</strong> {roles[userInfo.role]}
             </p>
             <p>
-              <strong>Email:</strong> {userInfo.email}
+              <strong>Логин:</strong> {userInfo.email}
             </p>
           </div>
         )}
@@ -141,6 +182,16 @@ const KpiCard = () => {
           </ResponsiveContainer>
         ) : (
           <p style={styles.status}>Нет данных для отображения графика</p>
+        )}
+
+        {(payload?.role === "hr" || payload?.id === achieve.userId) && (
+        <div style={styles.buttons}>
+            <Link to='../kpis'>
+              <button style={{ ...styles.button, color: "red"}} onClick={handleDelete}>
+              Удалить
+              </button>
+            </Link>
+        </div>
         )}
       </div>
     </div>

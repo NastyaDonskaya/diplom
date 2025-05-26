@@ -10,6 +10,7 @@ router.get('/vals/:userId', authMiddleware, KpiController.getValues)
 router.get('/lastvals/:userId', authMiddleware, KpiController.getLastValues)
 router.get('/all', authMiddleware, KpiController.getAll)
 router.get('/company/kpis', authMiddleware, KpiController.getCompanyLast)
+router.delete('/:userId/:typeId', authMiddleware, KpiController.delete)
 
 
 module.exports = router

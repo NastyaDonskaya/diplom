@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 
 const API_URL = "http://localhost:5000/api";
 
@@ -19,16 +19,6 @@ function parseJwt(token) {
   }
 }
 
-const handleEdit = () => {
-  alert("Функция редактирования пока недоступна");
-};
-
-const handleDelete = () => {
-  alert("Функция удаления пока недоступна");
-};
-
-
-
 const AchievementPage = () => {
   const { id } = useParams();
   const [achieve, setAchieve] = useState(null);
@@ -36,6 +26,27 @@ const AchievementPage = () => {
   const [error, setError] = useState("");
   const token = localStorage.getItem("token");
   const payload = token ? parseJwt(token) : null;
+
+  const handleDelete = async () => {
+    const confirm = window.confirm("Вы уверены ?");
+    if (!confirm) return;
+
+      try {
+        const res = await fetch(`${API_URL}/achieve/${id}`, {
+          method: "DELETE",
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          }
+        })
+        if (!res.ok) {
+          const er = await res.json().message
+          throw new Error(er || 'Ошибка при удалении');
+        }
+        alert("Достижение удалено");
+      } catch {
+        alert("Ошибка при удалении");
+      }
+  };
 
   useEffect(() => {
     const fetchAchievement = async () => {
@@ -103,12 +114,17 @@ const AchievementPage = () => {
         )}
         {(payload?.role === "hr" || payload?.id === achieve.userId) && (
         <div style={styles.buttons}>
-            <button style={{ ...styles.button }} onClick={handleEdit}>
-            Редактировать
-            </button>
-            <button style={{ ...styles.button, color: "red"}} onClick={handleDelete}>
-            Удалить
-            </button>
+            <Link to='./edit/'>
+              <button style={{ ...styles.button }}>
+              Редактировать
+              </button>
+            </Link>
+            <Link to='../achievements'>
+              <button style={{ ...styles.button, color: "red"}} onClick={handleDelete}>
+              Удалить
+              </button>
+            </Link>
+              
         </div>
         )}
       </div>

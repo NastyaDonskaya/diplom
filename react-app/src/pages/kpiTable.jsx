@@ -139,6 +139,7 @@ const KPI_table = () => {
               <th style={styles.th}>Роль</th>
               <th style={styles.th}>Тип</th>
               <th style={styles.th}>Значение</th>
+              <th style={styles.th}></th>
             </tr>
           </thead>
           <tbody>
@@ -148,6 +149,11 @@ const KPI_table = () => {
                 <td style={styles.td}>{roles[k.user?.role]}</td>
                 <td style={styles.td}>{k.kpi_type?.name || "—"}</td>
                 <td style={styles.td}>{k.value}</td>
+                <td style={styles.td}>
+                  <Link to={`/dashboard/kpiCard/${k.user.id}/${k.kpi_type.id}`} style={styles.detailsButton}>
+                    Подробнее...
+                  </Link>
+                </td>
               </tr>
             ))}
             {displayed.length === 0 && (
@@ -243,6 +249,14 @@ const styles = {
   td: {
     padding: "12px",
     borderBottom: "1px solid #ddd",
+  },
+  detailsButton: {
+    padding: "6px 10px",
+    borderRadius: "4px",
+    color: "#0077cc",
+    textDecoration: "none",
+    fontWeight: "bold",
+    fontSize: "0.9rem",
   },
   status: {
     textAlign: "center",

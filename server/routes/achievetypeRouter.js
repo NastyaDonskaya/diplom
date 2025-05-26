@@ -7,5 +7,6 @@ const authMiddleware = require('../middleware/authMiddleware')
 router.post('/', checkRole('hr'), achievetypeController.create)
 router.get('/', authMiddleware, achievetypeController.getAll)
 router.get('/:id/attributes', authMiddleware, achievetypeController.getAttrs)
+router.get('/:id', authMiddleware, achievetypeController.getType)
 
 module.exports = router

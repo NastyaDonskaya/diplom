@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Register() {
   const [email, setEmail] = useState("");
@@ -13,6 +13,7 @@ function Register() {
   const [companyPassword, setCompanyPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,13 +65,17 @@ function Register() {
         throw new Error(data.message);
       }
   
-      alert("Регистрация успешна!");
       setLoading(false);
       setEmail("");
       setPassword("");
       setConfirmPassword("");
       setRole("");
       setCompanyName("");
+
+      localStorage.setItem("token", data.token)
+      
+      navigate(`/dashboard/main/${data.userId}`);
+
     } catch (error) {
       setLoading(false);
       setError(error.message);
@@ -86,7 +91,7 @@ function Register() {
         <form onSubmit={handleSubmit} style={styles.form}>
           {error && <div style={styles.error}>{error}</div>}
 
-          <label style={styles.label}>Email</label>
+          <label style={styles.label}>Логин</label>
           <input
             type="login"
             value={email}

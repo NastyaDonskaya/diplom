@@ -11,6 +11,6 @@ router.get('/all/:userId', authMiddleware, AchieveController.getUserAchieves)
 router.get('/:id', authMiddleware, AchieveController.getOne)
 router.put('/:id', authMiddleware, AchieveController.update)
 router.get('/attr-values/:typeId', authMiddleware, AchieveController.getAttributeValues)
-
+router.delete('/:id', authMiddleware, AchieveController.delete)
 
 module.exports = router

@@ -39,7 +39,6 @@ function Login() {
   
       localStorage.setItem("token", data.token)
   
-      alert("Вы успешно вошли!")
       setLoading(false)
       setEmail("")
       setPassword("")
@@ -59,7 +58,7 @@ function Login() {
         <form onSubmit={handleSubmit} style={styles.form}>
           {error && <div style={styles.error}>{error}</div>}
 
-          <label style={styles.label}>Email</label>
+          <label style={styles.label}>Логин</label>
           <input
             type="login"
             value={email}

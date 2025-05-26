@@ -97,6 +97,33 @@ class KpiController {
         }
     }
 
+    async delete (req, res, next) {
+        const { userId, typeId } = req.params
+        try {
+            const user = await User.findByPk(req.user.id);
+            if (!user) {
+              return next(ApiError.badReq('Пользователь не найден'))
+            }
+            
+            const owner = await User.findByPk(userId)
+            if (owner.id !== user.id && user.role !== 'hr' || user.role === 'hr' && user.companyId !== owner.companyId) {
+                return next(ApiError.badReq('Нет доступа'))
+            }
+
+            const val = await KPI_value.findOne({where: {userId, kpiTypeId: typeId, isLast: true}})
+            if (!val) {
+                return next(ApiError.badReq('Показатель не найден'))
+            }
+
+            val.isLast = false
+            await val.save()
+
+            return res.json('')
+        } catch (e) {
+            return next(ApiError.badReq(e.message))
+        }
+    }
+
     async getValues (req, res, next) {
         const { userId, kpiTypeId } = req.params
 

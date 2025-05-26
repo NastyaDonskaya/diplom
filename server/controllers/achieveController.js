@@ -217,22 +217,30 @@ class AchieveController {
                 value: v
             }));
 
-            const include = attrFilters.map(f => ({
-                model: AchievementAttributeValue,
-                required: true,
-                where: {
-                    achieveTypeAttributeId: f.achieveTypeAttributeId,
-                    value: f.value
-                }
-            }))
 
-            const achievements = await Achievement.findAll({where: whereFilter, include })
+            const achievements = await Achievement.findAll({where: whereFilter, include: [{
+                model: AchievementAttributeValue,
+                required: false
+            }] })
+
             const result = []
 
             for (let achieve of achievements) {
                 const attrs = await AchievementAttributeValue.findAll({
                     where: {achieveId: achieve.id}
                 })
+
+                const isValid = attrFilters.every(f =>
+                    attrs.some(attr =>
+                    attr.achieveTypeAttributeId === f.achieveTypeAttributeId &&
+                    attr.value == f.value
+                    )
+                )
+
+                if (!isValid) {
+                    continue
+                }
+
                 const attrNames = await Promise.all(attrs.map(async (a) => {
                     const attrType = await AchievementTypeAttribute.findOne({
                         where: { id: a.achieveTypeAttributeId },
@@ -353,26 +361,35 @@ class AchieveController {
     }
 
     async delete(req, res, next) {
-        try {
-            const { id } = req.params
-            const userId = req.user.id
-            
-            const achieve = await Achievement.findByPk(id)
-            if (!achieve) {
-                return next(ApiError.notFound("Не найдено"))
-            }
-        
-            if (achieve.userId !== userId && req.user.role !== 'hr' && req.user.role !== 'ceo') {
-                return next(ApiError.forbidden("Нет доступа"))
-            }
-        
-            await achieve.destroy()
-            await recalculate(userId)
-            return res.json({ message: "Удалено" });
-        } catch (e) {
-            return next(ApiError.badReq(e.message))
+      try {
+        const { id } = req.params
+        const user = await User.findByPk(req.user.id);
+        if (!user) {
+          return next(ApiError.badReq('Пользователь не найден'))
         }
+
+        const achieve = await Achievement.findByPk(id);
+        if (!achieve) {
+          return next(ApiError.badReq('Достижение не найдено'))
+        }
+
+        const owner = await User.findByPk(achieve.userId);
+
+        if (owner.id !== user.id && user.role !== 'hr' || user.role === 'hr' && user.companyId !== owner.companyId) {
+            return next(ApiError.badReq('Нет доступа'))
+        }
+
+        await AchievementAttributeValue.destroy({ where: { achieveId: id } })
+
+        await achieve.destroy()
+
+        await recalculate(owner.id)
+
+      } catch (e) {
+        return next(ApiError.badReq(e.message))
+      }
     }
+
 
     async getOne(req, res, next) {
         try {

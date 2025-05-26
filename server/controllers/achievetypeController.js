@@ -79,6 +79,26 @@ class AchievetypeController {
         }  
     }
 
+    async getType (req, res, next) {
+        try {
+            const { id } = req.params
+            const achieveType = await AchievementType.findOne({
+                where: {id},
+                include: [{
+                    model: AchievementTypeAttribute
+                }]
+            })
+
+            if (!achieveType) {
+                return next(ApiError.badReq('Не найдено'))
+            }
+
+            return res.json(achieveType)
+
+        } catch (e) {
+            return next(ApiError.badReq(e.message))
+        }
+    }
 }
 
 module.exports = new AchievetypeController;
