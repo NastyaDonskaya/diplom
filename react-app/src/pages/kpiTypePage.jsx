@@ -3,6 +3,15 @@ import { useParams, Link } from "react-router-dom";
 
 const API_URL = "http://localhost:5000/api";
 
+const calcTypes = {
+    'DEF': 'Вручную',
+    'SUM': 'Сумма',
+    'COUNT': 'Количество',
+    'MAX': 'Максимум',
+    'MIN': 'Минимум',
+    'AVG': 'Среднее'
+}
+
 function parseJwt(token) {
   try {
     const base64Url = token.split(".")[1];
@@ -19,54 +28,75 @@ function parseJwt(token) {
   }
 }
 
-const AchievementTypePage = () => {
+const KpiTypePage = () => {
   const { id } = useParams();
-  const [type, setType] = useState(null);
+  const [kpiType, setKpiType] = useState(null);
+  const [creater, setCreater] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const token = localStorage.getItem("token");
   const payload = token ? parseJwt(token) : null;
 
+  async function fetchUserProfile(userId) {
+    if (!userId) return;
+    try {
+      const res = await fetch(`${API_URL}/user/profile/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Ошибка загрузки профиля пользователя");
+      const data = await res.json();
+      setCreater(data);
+    } catch (e) {
+      setCreater(null);
+    }
+  }
+
+
   const handleDelete = async () => {
-    const confirm = window.confirm("Вы уверены? (С типом удалятся все достижения этого типа)");
+    const confirm = window.confirm("Вы уверены? (С типом удалятся все показатели этого типа)");
     if (!confirm) return;
 
     try {
-      const res = await fetch(`${API_URL}/achieve_type/${id}`, {
+      const res = await fetch(`${API_URL}/kpi_type/${id}`, {
         method: "DELETE",
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         }
-      })
+      });
       if (!res.ok) {
-        const er = await res.json().message
+        const er = await res.json().message;
         throw new Error(er || 'Ошибка при удалении');
       }
-      alert("Тип достижения удален");
-      
-    } catch (e){
+      alert("Тип КПИ удалён");
+    } catch (e) {
       alert(e.message);
     }
-  }
+  };
 
   useEffect(() => {
-    async function fetchType() {
+    async function fetchKpiType() {
       try {
-        const res = await fetch(`${API_URL}/achieve_type/${id}`, {
+        const res = await fetch(`${API_URL}/kpi_type/${id}`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error("Ошибка загрузки данных");
         const data = await res.json();
-        setType(data);
+        setKpiType(data);
       } catch (e) {
         setError(e.message);
       } finally {
         setLoading(false);
       }
     }
-    fetchType();
+    fetchKpiType();
   }, [id, token]);
+
+  useEffect(() => {
+      if (kpiType && kpiType.createdBy) {
+        fetchUserProfile(kpiType.createdBy);
+      }
+    }, [kpiType]);
 
   if (loading)
     return <div style={{ padding: "1rem", textAlign: "center" }}>Загрузка...</div>;
@@ -76,55 +106,53 @@ const AchievementTypePage = () => {
         Ошибка: {error}
       </div>
     );
-  if (!type)
+  if (!kpiType)
     return (
       <div style={{ padding: "1rem", textAlign: "center" }}>
-        Тип достижения не найден
+        Тип КПИ не найден
       </div>
     );
 
   return (
     <div style={styles.wrapper}>
       <div style={styles.container}>
-        <h2 style={styles.title}>{type.name}</h2>
+        <h2 style={styles.title}>{kpiType.name}</h2>
         <p style={styles.description}>
-          {type.description || <span style={{ color: "#888" }}>Нет описания</span>}
+          {kpiType.description || <span style={{ color: "#888" }}>Нет описания</span>}
         </p>
 
-        {type.achieve_type_attributes && type.achieve_type_attributes.length > 0 ? (
-          <>
-            <h3 style={styles.subTitle}>Атрибуты типа</h3>
-            <ul style={styles.attributeList}>
-              {type.achieve_type_attributes.map((attr) => (
-                <li key={attr.id} style={styles.attributeItem}>
-                  <span style={styles.attrName}>{attr.name}</span>
-                  <span style={styles.attrValue}>
-                    {attr.dataType}
-                    {attr.isRequired ? " (обязательный)" : ""}
-                    {attr.dataType === "ENUM" && Array.isArray(attr.enumValues)
-                      ? ` — варианты: ${attr.enumValues.join(", ")}`
-                      : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : (
-          <p style={styles.noAttributes}>Атрибуты отсутствуют</p>
-        )}
+        <div style={styles.infoBlock}>
+          <p>
+            <strong>Тип расчёта:</strong> {calcTypes[kpiType.calculationType] || "—"}
+          </p>
+          <p>
+            <strong>Максимальное значение:</strong>{" "}
+            {kpiType.maxValue !== null ? kpiType.maxValue : "—"}
+          </p>
+          <p>
+            <strong>Создано:</strong> {creater?.name ?? "—"} {creater?.surname ?? "—"} 
+          </p>
+          <p>
+            <strong>Дата создания:</strong>{" "}
+            {kpiType.createdAt
+              ? new Date(kpiType.createdAt).toLocaleDateString()
+              : "—"}
+          </p>
+        </div>
 
         {(payload?.role === "hr") && (
-            <div style={styles.buttons}>
-                <Link to=''>
-                  <button style={{ ...styles.button, color: "red"}} onClick={handleDelete}>
-                  Удалить
-                  </button>
-                </Link>
-            </div>
+          <div style={styles.buttons}>
+            <button
+              style={{ ...styles.button, color: "red" }}
+              onClick={handleDelete}
+            >
+              Удалить
+            </button>
+          </div>
         )}
 
-        <Link to="/dashboard/achievements" style={styles.backLink}>
-          ← Назад к достижениям
+        <Link to="/dashboard/kpis" style={styles.backLink}>
+          ← Назад к типам КПИ
         </Link>
       </div>
     </div>
@@ -213,4 +241,4 @@ const styles = {
   },
 };
 
-export default AchievementTypePage;
+export default KpiTypePage;

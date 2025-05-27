@@ -184,7 +184,6 @@ const KpiCard = () => {
           <p style={styles.status}>Нет данных для отображения графика</p>
         )}
 
-        {(payload?.role === "hr" || payload?.id === achieve.userId) && (
         <div style={styles.buttons}>
             <Link to='../kpis'>
               <button style={{ ...styles.button, color: "red"}} onClick={handleDelete}>
@@ -192,7 +191,6 @@ const KpiCard = () => {
               </button>
             </Link>
         </div>
-        )}
       </div>
     </div>
   );
@@ -245,6 +243,22 @@ const styles = {
     textAlign: "center",
     marginTop: "2rem",
     color: "#333",
+  },
+  buttons: {
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "1rem",
+    marginTop: "2rem",
+  },
+  button: {
+    backgroundColor: '#e0e0e0',
+    color: '#333',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '6px 12px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    transition: 'background-color 0.3s ease',
   },
 };
 

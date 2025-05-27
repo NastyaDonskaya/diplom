@@ -351,7 +351,9 @@ class AchieveController {
                 if (!result[achieveTypeAttributeId]) {
                     result[achieveTypeAttributeId] = { attributeId: achieveTypeAttributeId, name, values: [] };
                 }
-                result[achieveTypeAttributeId].values.push(value);
+                if (!result[achieveTypeAttributeId].values.includes(value)) {
+                    result[achieveTypeAttributeId].values.push(value); // чтобы не повторялось
+                }
             });
             
             return res.json(result);

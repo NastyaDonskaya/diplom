@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function CreateAchieveType() {
+const CreateAchieveType = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [attributes, setAttributes] = useState([
@@ -349,3 +349,5 @@ const styles = {
     marginTop: '0.5rem',
   },
 };
+
+export default CreateAchieveType;

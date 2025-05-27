@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export default function CreateKpiType() {
+const CreateKpiType = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [calculationType, setCalculationType] = useState('DEF');
@@ -220,3 +220,5 @@ const styles = {
     marginTop: '1rem',
   },
 };
+
+export default CreateKpiType;

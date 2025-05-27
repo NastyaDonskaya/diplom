@@ -8,5 +8,6 @@ router.post('/', checkRole('hr'), achievetypeController.create)
 router.get('/', authMiddleware, achievetypeController.getAll)
 router.get('/:id/attributes', authMiddleware, achievetypeController.getAttrs)
 router.get('/:id', authMiddleware, achievetypeController.getType)
+router.delete('/:id', checkRole('hr'), achievetypeController.delete)
 
 module.exports = router

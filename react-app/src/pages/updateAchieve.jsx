@@ -17,7 +17,7 @@ function parseJwt(token) {
     return null;
   }
 }
-function EditAchievement() {
+const  EditAchievement = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const token = localStorage.getItem('token');

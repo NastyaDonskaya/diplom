@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 
 const API_URL = 'http://localhost:5000/api';
 
-function ProfilePage() {
+const ProfilePage = () => {
   const { id } = useParams();
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState("");
