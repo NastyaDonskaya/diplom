@@ -421,6 +421,7 @@
       flexWrap: "wrap",
     },
     select: {
+      maxWidth: "100px",
       padding: "0.5rem",
       borderRadius: "6px",
       border: "1px solid #ccc",
