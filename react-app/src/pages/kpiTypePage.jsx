@@ -46,7 +46,7 @@ const KpiTypePage = () => {
       if (!res.ok) throw new Error("Ошибка загрузки профиля пользователя");
       const data = await res.json();
       setCreater(data);
-    } catch (e) {
+    } catch {
       setCreater(null);
     }
   }
@@ -152,7 +152,7 @@ const KpiTypePage = () => {
         )}
 
         <Link to="/dashboard/kpis" style={styles.backLink}>
-          ← Назад к типам КПИ
+          ← Назад к KPI
         </Link>
       </div>
     </div>

@@ -115,11 +115,9 @@ const AchievementTypePage = () => {
 
         {(payload?.role === "hr") && (
             <div style={styles.buttons}>
-                <Link to=''>
-                  <button style={{ ...styles.button, color: "red"}} onClick={handleDelete}>
+                <button style={{ ...styles.button, color: "red"}} onClick={handleDelete}>
                   Удалить
-                  </button>
-                </Link>
+                </button>
             </div>
         )}
 

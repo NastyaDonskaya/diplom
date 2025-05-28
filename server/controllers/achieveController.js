@@ -111,12 +111,13 @@ class AchieveController {
 
             const validIds = achieveTypeAttributes.map(attr => attr.id);
             for (const attr of attributes) {
+                
                 if (!attr.attributeId || !validIds.includes(attr.attributeId)) {
                     return next(ApiError.badReq('Передан недопустимый attributeId'));
                 }
-                if (typeof attr.value === 'undefined' || attr.value === '') {
-                    return next(ApiError.badReq('Атрибут не содержит значение'));
-                }
+                // if (typeof attr.value === 'undefined' || attr.value === '') {
+                //     return next(ApiError.badReq('Атрибут не содержит значение'));
+                // }
             }
 
             const achievement = await Achievement.create({
@@ -467,9 +468,6 @@ class AchieveController {
 
     async getUserAchieves (req, res, next) {
         const {userId} = req.params
-        if (!userId) {
-            return next(ApiError.badReq('нет id пользователя'))
-        }
 
         const user = await User.findByPk(userId)
         if (!user) {

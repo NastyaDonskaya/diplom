@@ -28,7 +28,6 @@ function parseJwt(token) {
 const KPI_table = () => {
   const [tab, setTab] = useState("kpis");
   const [kpis, setKpis] = useState([]);
-  const [calcTypeFilter, setCalcTypeFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -77,7 +76,7 @@ const KPI_table = () => {
     };
 
     fetchData();
-  }, [token, typeFilter, calcTypeFilter]);
+  }, [token, typeFilter]);
 
   const displayed = kpis
     .slice()

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from "react-router-dom";
 
 function parseJwt(token) {
   try {
@@ -78,7 +79,7 @@ const CreateAchievement = () => {
 
     const fetchAttrs = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/achieve_type/${selectedTypeId}/attributes`, {
+        const res = await fetch(`${API_URL}/achieve_type/${selectedTypeId}/attributes`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -107,7 +108,7 @@ const CreateAchievement = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/achieve', {
+      const res = await fetch(`${API_URL}/achieve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -137,6 +138,9 @@ const CreateAchievement = () => {
   return (
     <div style={styles.wrapper}>
       <div style={styles.container}>
+        <Link to="/dashboard/achievements" style={styles.backLink}>
+          ← Назад к достижениям
+        </Link>
         <h2 style={styles.title}>Создание достижения</h2>
         <form onSubmit={handleSubmit} style={styles.form}>
           <label style={styles.label}>Название:</label>
@@ -213,6 +217,12 @@ const styles = {
     alignItems: 'center',
     background: 'linear-gradient(to right, #e4f2f9, #a6c7f7)',
     padding: '1rem',
+  },
+  backLink: {
+    color: "blue",
+    textDecoration: "none",
+    marginTop: "1rem",
+    display: "inline-block",
   },
   container: {
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
