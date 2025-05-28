@@ -150,7 +150,7 @@ const EmployeeDashboard = () => {
               <li key={a.id} style={styles.achieveItem}>
                 <Link to={`/dashboard/achievement/${a.id}`} style={{ textDecoration: 'none', color: 'black' }}>
                   <strong>{a.name}</strong>
-                </Link> — {a.achieve_type?.name || "Неизвестно"}, {a.date}
+                </Link> — {a.typeName || "Неизвестно"}, {a.date}
               </li>
             ))}
             {achieves.length > 5 && <li>И еще {achieves.length - 5} достижений...</li>}

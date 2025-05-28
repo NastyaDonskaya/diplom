@@ -145,7 +145,7 @@ class KpiTypeController {
         }
         try {
             const { calcType } = req.query
-            const whereFilter = {}
+            const whereFilter = {companyId: user.companyId}
             if (calcType) {
                 whereFilter.calcType = calcType
             }

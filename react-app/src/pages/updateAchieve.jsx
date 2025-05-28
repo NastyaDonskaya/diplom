@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
+const API_URL = "http://localhost:5000/api";
+
 function parseJwt(token) {
   try {
     const base64Url = token.split('.')[1];
@@ -21,7 +23,6 @@ const  EditAchievement = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
-  const API_URL = "http://localhost:5000/api";
   const payload = token ? parseJwt(token) : null;
 
   const [name, setName] = useState('');

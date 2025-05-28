@@ -30,7 +30,6 @@
   const AchievementsPage = () => {
     const [tab, setTab] = useState("achievements");
     const [achievements, setAchievements] = useState([]);
-    const [achievementTypes, setAchievementTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [typeFilter, setTypeFilter] = useState("");
@@ -118,7 +117,7 @@
           }))
           setAttrs(m);
           setAttrValues({});
-        } catch (e) {
+        } catch {
           setAttrs([]);
         }
       }

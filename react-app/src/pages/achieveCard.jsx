@@ -127,6 +127,9 @@ const AchievementPage = () => {
               
         </div>
         )}
+        <Link to="/dashboard/achievements" style={styles.backLink}>
+          ← Назад к достижениям
+         </Link>
       </div>
     </div>
   );
@@ -226,7 +229,12 @@ const styles = {
     fontSize: '14px',
     transition: 'background-color 0.3s ease',
   },
-
+  backLink: {
+    color: "blue",
+    textDecoration: "none",
+    marginTop: "1rem",
+    display: "inline-block",
+  },
 
 };
 

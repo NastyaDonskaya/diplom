@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const CreateAchieveType = () => {
   const [name, setName] = useState('');
@@ -98,6 +99,9 @@ const CreateAchieveType = () => {
   return (
     <div style={styles.wrapper}>
       <div style={styles.container}>
+        <Link to="/dashboard/achievements" style={styles.backLink}>
+          ← Назад к достижениям
+        </Link>
         <h2 style={styles.title}>Создание типа достижения</h2>
         <form onSubmit={handleSubmit} style={styles.form}>
           <label style={styles.label}>Название типа:</label>
@@ -222,6 +226,12 @@ const styles = {
     alignItems: 'center',
     background: 'linear-gradient(to right, #e4f2f9, #a6c7f7)',
     padding: '1rem',
+  },
+  backLink: {
+    color: "blue",
+    textDecoration: "none",
+    marginTop: "1rem",
+    display: "inline-block",
   },
   container: {
     backgroundColor: 'rgba(255, 255, 255, 0.7)',

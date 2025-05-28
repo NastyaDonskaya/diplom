@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+const API_URL = 'http://localhost:5000/api'
 
 const CreateKpiType = () => {
   const [name, setName] = useState('');
@@ -16,7 +19,7 @@ const CreateKpiType = () => {
   useEffect(() => {
     const fetchTypes = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/achieve_type', {
+        const res = await fetch(`${API_URL}/achieve_type`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -34,7 +37,7 @@ const CreateKpiType = () => {
 
     const fetchAttrs = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/achieve_type/${selectedTypeId}/attributes`, {
+        const res = await fetch(`${API_URL}/achieve_type/${selectedTypeId}/attributes`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -61,7 +64,7 @@ const CreateKpiType = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/api/kpi_type', {
+      const response = await fetch(`${API_URL}/kpi_type`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,6 +93,9 @@ const CreateKpiType = () => {
   return (
     <div style={styles.wrapper}>
       <div style={styles.container}>
+        <Link to="/dashboard/kpis" style={styles.backLink}>
+          ← Назад к KPI
+        </Link>
         <h2 style={styles.title}>Создание типа KPI</h2>
         <form onSubmit={handleSubmit} style={styles.form}>
           <label style={styles.label}>Название:</label>
@@ -161,6 +167,12 @@ const styles = {
     alignItems: 'center',
     background: 'linear-gradient(to right, #e4f2f9, #a6c7f7)',
     padding: '1rem',
+  },
+  backLink: {
+    color: "blue",
+    textDecoration: "none",
+    marginTop: "1rem",
+    display: "inline-block",
   },
   container: {
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
