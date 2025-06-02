@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+<<<<<<< HEAD
 import { API_URL } from "../api";
+=======
+
+const API_URL = "http://localhost:3001/api";
+>>>>>>> 9081e66 (Update achieveCard.jsx)
 
 function parseJwt(token) {
   try {
@@ -111,7 +116,7 @@ const AchievementPage = () => {
             ))}
           </ul>
         )}
-        {(payload?.role === "hr" || payload?.id === achieve.userId) && (
+        {(payload?.role === "hr" || payload?.role === "ceo "|| payload?.id === achieve.userId) && (
         <div style={styles.buttons}>
             <Link to='./edit/'>
               <button style={{ ...styles.button }}>
