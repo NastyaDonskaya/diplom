@@ -95,12 +95,12 @@ class AchieveController {
                 return next(ApiError.badReq('Заполните поля'))
             }
 
-            if (req.user.role !== 'hr' && req.user.id !== userId) {
+            if (req.user.role === 'emp'  && req.user.id !== userId) {
                 return next(ApiError.badReq('Вы можете добавлять достижения только себе'));
             }
             
             const owner = await User.findByPk(userId)
-            if (req.user.role === 'hr' && req.user.companyId !== owner.companyId) {
+            if ((req.user.role === 'hr' || req.user.role === 'ceo') && req.user.companyId !== owner.companyId) {
                 return next(ApiError.badReq('Вы можете добавлять достижения только участникам вашей компании'))
             }
             
