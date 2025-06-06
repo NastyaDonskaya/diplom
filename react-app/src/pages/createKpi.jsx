@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '../api';
 
 const CreateKpiValue = () => {
   const [kpiTypes, setKpiTypes] = useState([]);
@@ -44,7 +43,7 @@ const CreateKpiValue = () => {
   }, []);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // чтобы страница не перегружалась
 
     const selectedType = kpiTypes.find(t => t.id === parseInt(selectedTypeId));
     const payload = {
@@ -79,7 +78,7 @@ const CreateKpiValue = () => {
         setDescription('');
       } else {
         const data = await res.json();
-        alert(`Ошибка: ${data.message || 'Не удалось создать KPI'}`);
+        alert(`Ошибка: ${data.message}`);
       }
     } catch {
       alert('Сервер не отвечает');

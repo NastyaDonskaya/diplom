@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Outlet, Link } from "react-router-dom";
+import { API_URL } from '../api';
 
 function parseJwt(token) {
   try {
@@ -22,7 +23,6 @@ const handleLogout = () => {
   localStorage.removeItem("token");
 }
 
-const API_URL = 'http://localhost:5000/api'
 
 const DashboardLayout = () => {
 
@@ -47,7 +47,6 @@ const DashboardLayout = () => {
             <Link style={styles.link} to={`/dashboard/main/${payload.id}`}>Главная</Link>
             <Link style={styles.link} to="/dashboard/achievements">Достижения</Link>
             <Link style={styles.link} to="/dashboard/kpis">Показатели</Link>
-            <Link style={styles.link} to="/reports">Отчеты</Link>
             <Link style={styles.link} to="/dashboard/company">Компания</Link>
           </nav>
         </div>
@@ -59,7 +58,6 @@ const DashboardLayout = () => {
             <Link style={styles.link} to={`/dashboard/main/${payload.id}`}>Главная</Link>
             <Link style={styles.link} to="/dashboard/achievements">Достижения</Link>
             <Link style={styles.link} to="/dashboard/kpis">Показатели</Link>
-            <Link style={styles.link} to="/reports">Отчеты</Link>
             <Link style={styles.link} to="/dashboard/company">Компания</Link>
           </nav>
         </aside>

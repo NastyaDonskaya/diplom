@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
-const API_URL = "http://localhost:5000/api";
+import { API_URL } from '../api';
 
 function parseJwt(token) {
   try {
@@ -19,6 +18,7 @@ function parseJwt(token) {
     return null;
   }
 }
+
 const  EditAchievement = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ const  EditAchievement = () => {
   }, [id, token]);
 
   useEffect(() => {
-    const init = async () => {
+    const inf = async () => {
       try {
         const typeRes = await fetch(`${API_URL}/achieve_type`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -82,7 +82,7 @@ const  EditAchievement = () => {
         console.error(e);
       }
     };
-    init();
+    inf();
   }, [token]);
 
   useEffect(() => {
@@ -132,7 +132,7 @@ const  EditAchievement = () => {
         navigate(-1);
       } else {
         const err = await res.json();
-        alert(err.message || 'Ошибка при обновлении');
+        alert(err.message);
       }
     } catch {
       alert('Ошибка сети');
@@ -155,7 +155,7 @@ const  EditAchievement = () => {
 
           <label style={styles.label}>Сотрудник:</label>
           <select value={userId} onChange={e => setUserId(e.target.value)} style={styles.select} required>
-            <option value="">-- Выберите сотрудника --</option>
+            <option value="">Сотрудник</option>
             {users.map(user => (
               <option key={user.id} value={user.id}>
                 {user.name} {user.surname} ({user.email})
@@ -165,7 +165,7 @@ const  EditAchievement = () => {
 
           <label style={styles.label}>Тип:</label>
           <select value={selectedTypeId} onChange={e => setSelectedTypeId(e.target.value)} style={styles.select} required>
-            <option value="">-- Выберите тип --</option>
+            <option value="">Тип достижения</option>
             {achieveTypes.map(type => (
               <option key={type.id} value={type.id}>{type.name}</option>
             ))}
@@ -185,7 +185,7 @@ const  EditAchievement = () => {
                       onChange={(e) => handleChange(attr.id, e.target.value)}
                       required={attr.isRequired}
                     >
-                      <option value="">-- Выберите --</option>
+                      <option value="">Выберите</option>
                       {attr.enumValues.map(option => (
                         <option key={option} value={option}>{option}</option>
                       ))}

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-
-const API_URL = "http://localhost:5000/api";
+import { API_URL } from '../api';
 
 const calcTypes = {
     'DEF': 'Вручную',
@@ -37,7 +36,7 @@ const KpiTypePage = () => {
   const token = localStorage.getItem("token");
   const payload = token ? parseJwt(token) : null;
 
-  async function fetchUserProfile(userId) {
+  const fetchUserProfile = async (userId) => {
     if (!userId) return;
     try {
       const res = await fetch(`${API_URL}/user/profile/${userId}`, {
@@ -74,7 +73,7 @@ const KpiTypePage = () => {
   };
 
   useEffect(() => {
-    async function fetchKpiType() {
+      const fetchKpiType = async () => {
       try {
         const res = await fetch(`${API_URL}/kpi_type/${id}`, {
           method: "GET",

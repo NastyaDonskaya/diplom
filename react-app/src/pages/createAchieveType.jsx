@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { API_URL } from '../api';
 
 const CreateAchieveType = () => {
   const [name, setName] = useState('');
@@ -20,7 +21,7 @@ const CreateAchieveType = () => {
 
           updated[index].enumValues = currentEnum.length ? currentEnum : [''];
         } else {
-          delete updated[index].enumValues;
+          delete updated[index].enumValues; // если не enum - не нужно
         }
       }
       return updated;
@@ -35,10 +36,10 @@ const CreateAchieveType = () => {
     });
   };
 
-  const addEnumValue = (attrIndex) => {
+  const addEnumValue = (attrIdx) => {
     setAttributes(prev => {
       return prev.map((attr, i) => {
-        if (i === attrIndex) {
+        if (i === attrIdx) {
           return {
             ...attr,
             enumValues: [...(attr.enumValues || []), '']
@@ -50,10 +51,10 @@ const CreateAchieveType = () => {
   };
 
 
-  const removeEnumValue = (attrIndex, valIndex) => {
+  const removeEnumValue = (attrIdx, valIdx) => {
     setAttributes(prev => {
       const updated = [...prev];
-      updated[attrIndex].enumValues = updated[attrIndex].enumValues.filter((_, i) => i !== valIndex);
+      updated[attrIdx].enumValues = updated[attrIndex].enumValues.filter((_, i) => i !== valIdx);
       return updated;
     });
   };
@@ -76,7 +77,7 @@ const CreateAchieveType = () => {
     const token = localStorage.getItem("token")
 
     try {
-      const response = await fetch('http://localhost:5000/api/achieve_type', {
+      const response = await fetch(`${API_URL}/achieve_type`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${token}` },
         body: JSON.stringify(payload),
@@ -89,7 +90,7 @@ const CreateAchieveType = () => {
         setAttributes([{ name: '', dataType: 'STRING', isRequired: false }]);
       } else {
         const data = await response.json();
-        alert(`Ошибка: ${data.message || 'Не удалось создать'}`);
+        alert(`Ошибка: ${data.message}`);
       }
     } catch {
       alert('Сервер не отвечает');

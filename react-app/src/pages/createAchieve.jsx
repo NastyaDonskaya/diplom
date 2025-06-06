@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from "react-router-dom";
+import { API_URL } from "../api";
 
 function parseJwt(token) {
   try {
@@ -31,7 +32,6 @@ const CreateAchievement = () => {
 
 
   const token = localStorage.getItem('token');
-  const API_URL = "http://localhost:5000/api";
   const payload = token ? parseJwt(token) : null;
 
   const handleChange = (attrId, value) => {

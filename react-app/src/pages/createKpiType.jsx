@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-const API_URL = 'http://localhost:5000/api'
+import { API_URL } from '../api';
 
 const CreateKpiType = () => {
   const [name, setName] = useState('');
@@ -83,7 +82,7 @@ const CreateKpiType = () => {
         setMaxValue('');
       } else {
         const data = await response.json();
-        alert(`Ошибка: ${data.message || 'Не удалось создать KPI'}`);
+        alert(`Ошибка: ${data.message}`);
       }
     } catch {
       alert('Сервер не отвечает');

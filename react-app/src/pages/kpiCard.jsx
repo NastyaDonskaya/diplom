@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { API_URL } from '../api';
 import {
   LineChart,
   Line,
@@ -32,7 +33,6 @@ function parseJwt(token) {
   }
 }
 
-const API_URL = "http://localhost:5000/api";
 
 const KpiCard = () => {
   const { userId, kpiTypeId } = useParams();
@@ -128,7 +128,7 @@ const KpiCard = () => {
     fetchData();
   }, [userId, kpiTypeId, token]);
 
-  const getPeriodKPI = () => {
+  const getKPIperiod = () => {
     if (!start && !end) {
       return kpiData;
     }
@@ -150,7 +150,7 @@ const KpiCard = () => {
     );
   }
 
-  const kpis = getPeriodKPI();
+  const kpis = getKPIperiod();
 
   return (
     <div style={styles.wrapper}>

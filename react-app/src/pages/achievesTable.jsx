@@ -1,9 +1,7 @@
   import React, { useEffect, useState } from "react";
   import { parseISO, format } from "date-fns";
   import { Link } from "react-router-dom";
-
-
-  const API_URL = "http://localhost:5000/api";
+  import { API_URL } from "../api";
 
   const roles = {
     "ceo": "Руководитель",
@@ -64,7 +62,7 @@
           
           Object.entries(attrValues).forEach(([key, value]) => {
             if (value) params.append(`attr_${key}`, value);
-          });
+          }); // превращаем в массив пар и добавляем к params
 
           let res;
 
@@ -140,7 +138,7 @@
           a.name.toLowerCase().includes(term) ||
           a.user.name.toLowerCase().includes(term) ||
           a.user.surname.toLowerCase().includes(term)
-        );
+        ); // поиск
       });
 
     const getRowStyle = (i) => (i % 2 === 0 ? styles.trEven : styles.trOdd);
@@ -241,7 +239,7 @@
                 />
               </div>
 
-              {attrs.length > 0 && (
+              {attrs.length > 0 && (payload.role === 'hr' || payload.role ==='ceo') && (
                 <div style={{ ...styles.controls, marginTop: 8 }}>
                   {attrs.map((attr) => (
                     <div

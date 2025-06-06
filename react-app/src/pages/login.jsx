@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link , useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { API_URL } from "../api";
 
 
 
@@ -20,7 +21,7 @@ const Login = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/user/login", {
+      const res = await fetch(`${API_URL}/user/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,7 +65,7 @@ const Login = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             style={styles.input}
-            placeholder="Введите email"
+            placeholder="Введите логин"
           />
 
           <label style={styles.label}>Пароль</label>

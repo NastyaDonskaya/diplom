@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '../api';
 
 const ProfilePage = () => {
   const { id } = useParams();

@@ -36,7 +36,6 @@ function App() {
           <Route path="achievements" element={<AchievementsPage />} />
           <Route path="kpiCard/:userId/:kpiTypeId" element={<KpiCard />} />
           <Route path="kpis" element={< KPI_table/>} />
-          {/* <Route path="userReport" element={<UserReportPage/>} /> */}
           <Route path="achievement/:id/edit" element={< EditAchievement />}/>
           <Route path="achieveType/:id" element={<AchievementTypePage />}/>
           <Route path="kpiType/:id" element={<KpiTypePage />}/>

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-
-const API_URL = 'http://localhost:5000/api'
+import { API_URL } from '../api';
 
 function parseJwt(token) {
   try {
@@ -167,7 +166,7 @@ const EmployeeDashboard = () => {
         {loading && <p>Загрузка...</p>}
         {error && <p style={{ color: "red" }}>{error}</p>}
         <div style={styles.cardRow}>
-          {(payload.role === 'hr' || payload.role === 'ceo') && (
+          {(payload.role === 'hr' || payload.role === 'ceo' || payload.id === +id) && (
             <div style={{ textAlign: 'center', marginTop: '2rem' }}>
               <button style={styles.button} onClick={handleDownloadReport}>
                 Скачать отчет о пользователе

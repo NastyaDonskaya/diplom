@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from "../api";
 
 function parseJwt(token) {
   try {
@@ -34,7 +33,7 @@ const CompanyPage = () => {
     if (a.id === payload.id) return -1;
     if (b.id === payload.id) return 1;
     return 0;
-  });
+  }); // пользователь вверху
 
   useEffect(() => {
 
@@ -58,7 +57,7 @@ const CompanyPage = () => {
         });
         const membersData = await membersRes.json();
         if (!membersRes.ok) {
-          throw new Error(membersData.message || 'Не удалось загрузить участников');
+          throw new Error(membersData.message);
         }
         
         const queriesRes = await fetch(`${API_URL}/user/members/query`, {
@@ -71,7 +70,7 @@ const CompanyPage = () => {
 
         const queriesData = await queriesRes.json();
         if (!queriesRes.ok) {
-          throw new Error(queriesData.message || 'Не удалось загрузить заявки');
+          throw new Error(queriesData.message);
         }
 
         setMembers(membersData);
@@ -188,7 +187,7 @@ const CompanyPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {members.map((m, i) => (
+                    {sortedMembers.map((m, i) => (
                       <tr key={m.id} style={getRowStyle(i, m.id)}>
                         <td style={styles.td}><Link to={`/dashboard/main/${m.id}`} style={{ color: "black"}}>{m.email}</Link></td>
                         <td style={styles.td}>{m.role}</td>

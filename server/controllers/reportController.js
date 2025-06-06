@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const ApiError = require('../error/apiError')
 
-const { User, Achievement, AchievementType, AchievementAttributeValue, AchievementTypeAttribute, Company } = require('../models/models')
+const { User, Achievement, AchievementType, AchievementAttributeValue, AchievementTypeAttribute, Company, KPI_value, KPI_type } = require('../models/models')
 
 const roles = {
     'ceo': 'Руководитель',
@@ -31,30 +31,49 @@ class ReportController {
             text += `Дата: ${new Date().toLocaleDateString()}\n\n`
 
             text += `Достижения: \n`
-            for (let [index, achieve] of achieves.entries()) {
-                const type = await AchievementType.findByPk(achieve.achieveTypeId);
+            for (let [index, achieve] of achieves.entries()) { // проходим по (индекс, элемент)
+                const type = await AchievementType.findByPk(achieve.achieveTypeId)
                 const attrs = await AchievementAttributeValue.findAll({
                     where: { achieveId: achieve.id }
-                });
+                })
 
                 const attrsText = await Promise.all(attrs.map(async (attr) => {
-                    const attrType = await AchievementTypeAttribute.findByPk(attr.achieveTypeAttributeId);
-                    return `  - ${attrType?.name || 'Неизвестный атрибут'}: ${attr.value}`;
-                }));
+                    const attrType = await AchievementTypeAttribute.findByPk(attr.achieveTypeAttributeId)
+                    return `  - ${attrType?.name || 'Неизвестный атрибут'}: ${attr.value}`
+                }))
 
-                text += `${index + 1}. Название: ${achieve.name}\n`;
-                text += `   Тип: ${type?.name || 'неизвестен'}\n`;
-                text += `   Дата: ${new Date(achieve.date).toLocaleDateString()}\n`;
-                text += `   Описание: ${achieve.description || 'нет описания'}\n`;
-                text += `   Атрибуты:\n${attrsText.join('\n')}\n\n`;
+                text += `${index + 1}. Название: ${achieve.name}\n`
+                text += `   Тип: ${type?.name || 'неизвестен'}\n`
+                text += `   Дата: ${new Date(achieve.date).toLocaleDateString()}\n`
+                text += `   Описание: ${achieve.description || 'нет описания'}\n`
+                text += `   Атрибуты:\n${attrsText.join('\n')}\n\n`
             }
-            const reportsDir = path.join(__dirname, '..', 'reports');
-            if (!fs.existsSync(reportsDir)) fs.mkdirSync(reportsDir);
 
-            const filePath = path.join(reportsDir, `report-user-${userId}.txt`);
-            fs.writeFileSync(filePath, text, 'utf8');
+            text += `Показатели КПИ: \n`
+            const kpiVals = await KPI_value.findAll({
+                where: {userId, isLast: true},
+                include: [{
+                    model: KPI_type,
+                    attributes: ['name']
+                }]
+            })
 
-            return res.download(filePath);
+            if (!kpiVals.length) {
+                text += `   Нет показателей\n\n`
+            } else {
+                kpiVals.forEach((v, i) => {
+                    text += `   ${i + 1}. Тип: ${v.kpi_type.name} - Значение: ${v.value}\n`
+                })
+            }
+            text += '\n'
+
+            const reportsDir = path.join(__dirname, '..', 'reports')
+            if (!fs.existsSync(reportsDir)) fs.mkdirSync(reportsDir)
+
+            const filePath = path.join(reportsDir, `report-user-${userId}.txt`)
+            fs.writeFileSync(filePath, text, 'utf8')
+
+            return res.download(filePath)
 
         } catch (e) {
             return next(ApiError.badReq(e.message))

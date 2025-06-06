@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
-const API_URL = "http://localhost:5000/api";
+import { API_URL } from '../api';
 
 const roles = {
   'ceo': "Руководитель",
@@ -86,7 +85,7 @@ const KPI_table = () => {
         k.user?.name?.toLowerCase().includes(term) ||
         k.user?.surname?.toLowerCase().includes(term)
       );
-    });
+    }); // поиск
 
   const getRowStyle = (i) => (i % 2 === 0 ? styles.trEven : styles.trOdd);
 
