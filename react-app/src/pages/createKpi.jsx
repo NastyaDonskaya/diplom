@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export default function CreateKpiValue() {
+const CreateKpiValue = () => {
   const [kpiTypes, setKpiTypes] = useState([]);
   const [selectedTypeId, setSelectedTypeId] = useState('');
   const [userId, setUserId] = useState('');
@@ -191,3 +191,5 @@ const styles = {
     marginTop: '1rem',
   },
 };
+
+export default CreateKpiValue;

@@ -3,6 +3,21 @@ import { useParams, Link } from "react-router-dom";
 
 const API_URL = 'http://localhost:5000/api'
 
+function parseJwt(token) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
 
 const EmployeeDashboard = () => {
   const { id } = useParams()
@@ -11,7 +26,32 @@ const EmployeeDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [owner, setOwner] = useState(null);
-  const token = localStorage.getItem("token")
+  const token = localStorage.getItem("token");
+  const payload = token ? parseJwt(token) : null;
+
+  const handleDownloadReport = async () => {
+    try {
+      const res = await fetch(`${API_URL}/report/user/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        throw new Error("Ошибка при получении отчёта");
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `report_${id}.txt`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -120,6 +160,22 @@ const EmployeeDashboard = () => {
       </section>
 
       {/* отчеты*/}
+      <section style={styles.section}>
+        <h2 style={styles.sectionTitle}>Отчеты</h2>
+
+        {loading && <p>Загрузка...</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        <div style={styles.cardRow}>
+          {(payload.role === 'hr' || payload.role === 'ceo') && (
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+              <button style={styles.button} onClick={handleDownloadReport}>
+                Скачать отчет о пользователе
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+      
     </div>
   );
 };

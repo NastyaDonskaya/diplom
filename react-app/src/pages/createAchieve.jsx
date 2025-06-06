@@ -17,7 +17,7 @@ function parseJwt(token) {
   }
 }
 
-export default function CreateAchievement() {
+const CreateAchievement = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
@@ -302,3 +302,4 @@ const styles = {
   },
 };
   
+export default CreateAchievement;

@@ -45,9 +45,10 @@ const DashboardLayout = () => {
           <button onClick={() => setNavIsOpen(false)} style={styles.closeBtn}>×</button>
           <nav style={styles.nav}>
             <Link style={styles.link} to={`/dashboard/main/${payload.id}`}>Главная</Link>
-            <Link style={styles.link} to="/achievements">Достижения</Link>
+            <Link style={styles.link} to="/dashboard/achievements">Достижения</Link>
+            <Link style={styles.link} to="/dashboard/kpis">Показатели</Link>
             <Link style={styles.link} to="/reports">Отчеты</Link>
-            <Link style={styles.link} to="/settings">Компания</Link>
+            <Link style={styles.link} to="/dashboard/company">Компания</Link>
           </nav>
         </div>
       )}

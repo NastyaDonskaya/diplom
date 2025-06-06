@@ -4,9 +4,9 @@ import { Link } from "react-router-dom";
 const API_URL = "http://localhost:5000/api";
 
 const roles = {
-  ceo: "Руководитель",
-  hr: "HR",
-  emp: "Сотрудник",
+  'ceo': "Руководитель",
+  'hr': "HR",
+  'emp': "Сотрудник",
 };
 
 function parseJwt(token) {
@@ -26,7 +26,9 @@ function parseJwt(token) {
 }
 
 const KPI_table = () => {
+  const [tab, setTab] = useState("kpis");
   const [kpis, setKpis] = useState([]);
+  const [calcTypeFilter, setCalcTypeFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -75,7 +77,7 @@ const KPI_table = () => {
     };
 
     fetchData();
-  }, [token, typeFilter]);
+  }, [token, typeFilter, calcTypeFilter]);
 
   const displayed = kpis
     .slice()
@@ -94,78 +96,116 @@ const KPI_table = () => {
 
   return (
     <div style={styles.wrapper}>
-      <h1 style={styles.title}>Показатели KPI</h1>
-
-      <div style={styles.controls}>
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          style={styles.select}
-        >
-          <option value="">Все типы</option>
-          {types.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="text"
-          placeholder="Поиск по имени сотрудника"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={styles.inputSearch}
-        />
-      </div>
-
-      {payload.role === 'hr' && (
-        <div style={styles.buttonGroup}>
-            <Link to="/dashboard/createKpiType" style={styles.button}>
-            Создать тип KPI
-            </Link>
-            <Link to="/dashboard/createKpi" style={styles.button}>
-            Добавить KPI
-            </Link>
+      {payload.role === 'hr' && 
+        <div style={styles.tabBar}>
+          <button
+            style={ tab === "kpis" ? styles.tabActive : styles.tab }
+            onClick={() => setTab("kpis")}
+          >
+            Показатели
+          </button>
+          <button
+            style={ tab === "types" ? styles.tabActive : styles.tab }
+            onClick={() => setTab("types")}
+          >
+            Типы показателей
+          </button>
         </div>
-        )}
-
-
-      <div style={styles.tableContainer}>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Пользователь</th>
-              <th style={styles.th}>Роль</th>
-              <th style={styles.th}>Тип</th>
-              <th style={styles.th}>Значение</th>
-              <th style={styles.th}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayed.map((k, i) => (
-              <tr key={k.id} style={getRowStyle(i)}>
-                <td style={styles.td}>{k.user?.name} {k.user?.surname}</td>
-                <td style={styles.td}>{roles[k.user?.role]}</td>
-                <td style={styles.td}>{k.kpi_type?.name || "—"}</td>
-                <td style={styles.td}>{k.value}</td>
-                <td style={styles.td}>
-                  <Link to={`/dashboard/kpiCard/${k.user.id}/${k.kpi_type.id}`} style={styles.detailsButton}>
-                    Подробнее...
-                  </Link>
-                </td>
-              </tr>
+      }
+      <h1 style={styles.title}>Показатели KPI</h1>
+      {tab === 'kpis' ? (
+        <>
+        <div style={styles.controls}>
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            style={styles.select}
+          >
+            <option value="">Все типы</option>
+            {types.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
             ))}
-            {displayed.length === 0 && (
+          </select>
+
+          <input
+            type="text"
+            placeholder="Поиск по имени сотрудника"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={styles.inputSearch}
+          />
+        </div>
+
+        {payload.role === 'hr' && (
+          <div style={styles.buttonGroup}>
+              <Link to="/dashboard/createKpiType" style={styles.button}>
+              Создать тип KPI
+              </Link>
+              <Link to="/dashboard/createKpi" style={styles.button}>
+              Добавить KPI
+              </Link>
+          </div>
+          )}
+
+
+        <div style={styles.tableContainer}>
+          <table style={styles.table}>
+            <thead>
               <tr>
-                <td colSpan="6" style={{ textAlign: "center", padding: "1rem" }}>
-                  Нет показателей по заданным фильтрам
-                </td>
+                <th style={styles.th}>Пользователь</th>
+                <th style={styles.th}>Роль</th>
+                <th style={styles.th}>Тип</th>
+                <th style={styles.th}>Значение</th>
+                <th style={styles.th}></th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {displayed.map((k, i) => (
+                <tr key={k.id} style={getRowStyle(i)}>
+                  <td style={styles.td}>{k.user?.name} {k.user?.surname}</td>
+                  <td style={styles.td}>{roles[k.user?.role]}</td>
+                  <td style={styles.td}>{k.kpi_type?.name || "—"}</td>
+                  <td style={styles.td}>{k.value}</td>
+                  <td style={styles.td}>
+                    <Link to={`/dashboard/kpiCard/${k.user.id}/${k.kpi_type.id}`} style={styles.detailsButton}>
+                      Подробнее...
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+              {displayed.length === 0 && (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: "center", padding: "1rem" }}>
+                    Нет показателей по заданным фильтрам
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div> 
+      </>
+      ) : (
+        <div style={styles.tableContainer}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Типы показателей KPI</th>
+                <th style={styles.th}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {types.map((type, i) => (
+                <tr key={type.id} style={getRowStyle(i)}>
+                  <td style={styles.td}>{type.name}</td>
+                  <td style={styles.td}><Link to={`/dashboard/kpiType/${type.id}`} style={{textDecoration: "none", color: "#0077cc"}}>Перейти...</Link></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
@@ -179,6 +219,28 @@ const styles = {
     margin: "auto",
     backgroundColor: "#f7f9fc",
     borderRadius: "12px",
+  },
+  tabBar: {
+    display: "flex",
+    gap: "1rem",
+    marginBottom: "1rem",
+  },
+  tab: {
+    padding: "0.5rem 1rem",
+    backgroundColor: "#e0e0e0",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "600",
+  },
+  tabActive: {
+    padding: "0.5rem 1rem",
+    backgroundColor: "#0077cc",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "600",
   },
   title: {
     fontSize: "2rem",

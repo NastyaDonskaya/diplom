@@ -338,7 +338,7 @@
           <table style={styles.table}>
             <thead>
               <tr>
-                <th style={styles.th}>Название</th>
+                <th style={styles.th}>Типы достижений</th>
                 <th style={styles.th}></th>
               </tr>
             </thead>
