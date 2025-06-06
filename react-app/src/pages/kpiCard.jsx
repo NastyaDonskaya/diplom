@@ -37,6 +37,8 @@ const API_URL = "http://localhost:5000/api";
 const KpiCard = () => {
   const { userId, kpiTypeId } = useParams();
   const [kpiData, setKpiData] = useState([]);
+  const [start, setStart] = useState(null);
+  const [end, setEnd] = useState(null);
   const [kpiType, setKpiType] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -91,11 +93,15 @@ const KpiCard = () => {
         setKpiType(data[0].kpi_type);
 
         const chartData = data
-          .map((item) => ({
-            startDate: new Date(item.startDate).toLocaleDateString(),
-            value: item.value,
-          }))
-          .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+          .map((item) => {
+            const date = new Date(item.startDate);
+            return {
+              startDate: date.toLocaleDateString(),
+              date,
+              value: item.value,
+            }
+          })
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
 
         setKpiData(chartData);
 
@@ -122,6 +128,17 @@ const KpiCard = () => {
     fetchData();
   }, [userId, kpiTypeId, token]);
 
+  const getPeriodKPI = () => {
+    if (!start && !end) {
+      return kpiData;
+    }
+    const startD = start ? new Date(start) : null;
+    const endD = end ? new Date(end) : null;
+    return kpiData.filter((e) => {
+      return (startD ? e.date >= startD : true) && (endD ? e.date <= endD : true);
+    })
+  }
+
   if (loading) {
     return <p style={styles.status}>Загрузка данных KPI...</p>;
   }
@@ -132,6 +149,8 @@ const KpiCard = () => {
       </p>
     );
   }
+
+  const kpis = getPeriodKPI();
 
   return (
     <div style={styles.wrapper}>
@@ -165,7 +184,7 @@ const KpiCard = () => {
         {kpiData.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart
-              data={kpiData}
+              data={kpis}
               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
@@ -183,6 +202,37 @@ const KpiCard = () => {
         ) : (
           <p style={styles.status}>Нет данных для отображения графика</p>
         )}
+
+        <h3 style={styles.subTitle}>Период:</h3>
+        <div style={styles.periodControls}>
+          <div style={styles.periodField}>
+            <label style={styles.periodLabel}>С:</label>
+            <input
+              type="date"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+              style={styles.periodInput}
+            />
+          </div>
+          <div style={styles.periodField}>
+            <label style={styles.periodLabel}>По:</label>
+            <input
+              type="date"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+              style={styles.periodInput}
+            />
+          </div>
+          <button
+            style={styles.clearButton}
+            onClick={() => {
+              setStart("");
+              setEnd("");
+            }}
+          >
+            Сбросить
+          </button>
+        </div>
 
         <div style={styles.buttons}>
             <Link to='../kpis'>
@@ -232,6 +282,37 @@ const styles = {
     border: "1px solid #ccc",
     borderRadius: "8px",
     backgroundColor: "#f9f9f9",
+  },
+  periodControls: {
+    display: "flex",
+    alignItems: "center",
+    gap: "1rem",
+    marginBottom: "1.5rem",
+  },
+  periodField: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  periodLabel: {
+    fontSize: "0.9rem",
+    marginBottom: "0.25rem",
+    color: "#444",
+  },
+  periodInput: {
+    padding: "0.4rem",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+    fontSize: "0.9rem",
+  },
+  clearButton: {
+    backgroundColor: "#f0f0f0",
+    color: "#333",
+    border: "1px solid #ccc",
+    borderRadius: "6px",
+    padding: "0.4rem 0.8rem",
+    cursor: "pointer",
+    fontSize: "0.9rem",
+    marginTop: "1.6rem",
   },
   subTitle: {
     fontSize: "1.2rem",

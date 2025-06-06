@@ -358,7 +358,7 @@
 
   const styles = {
     wrapper: {
-      padding: "1.5rem 5rem",
+      padding: "2rem 5rem",
       fontFamily: "Segoe UI, sans-serif",
       color: "#2c3e50",
       maxWidth: "1000px",

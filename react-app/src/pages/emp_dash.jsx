@@ -23,6 +23,7 @@ const EmployeeDashboard = () => {
   const { id } = useParams()
   const [kpiValues, setKpiValues] = useState([]);
   const [achieves, setAchieves] = useState([]);
+  const [achievesCount, setAchievesCount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [owner, setOwner] = useState(null);
@@ -93,8 +94,9 @@ const EmployeeDashboard = () => {
         });
         if (achieveRes.ok) {
           const achieveData = await achieveRes.json();
-          const sorted = achieveData.sort((a, b) => new Date(b.date) - new Date(a.date));
-          setAchieves(sorted.slice(0, 5)); // только последние 5
+          const achieves = achieveData.sort((a, b) => new Date(b.date) - new Date(a.date));
+          setAchievesCount(achieves.length);
+          setAchieves(achieves.slice(0, 5)); // только последние 5
         } else {
           const e = await achieveRes.json();
           console.error("Ошибка получения достижений:", e.message);
@@ -153,13 +155,12 @@ const EmployeeDashboard = () => {
                 </Link> — {a.typeName || "Неизвестно"}, {a.date}
               </li>
             ))}
-            {achieves.length > 5 && <li>И еще {achieves.length - 5} достижений...</li>}
+            <li>Всего {achievesCount} достижений</li>
           </ul>
         )}
         <Link to='/dashboard/achievements'><button style={styles.button}>Все достижения</button></Link>
       </section>
 
-      {/* отчеты*/}
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Отчеты</h2>
 

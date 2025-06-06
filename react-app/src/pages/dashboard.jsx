@@ -138,8 +138,6 @@ const styles = {
     transition: "all 0.2s ease",
   },
 
-
-
   sidebar: {
     width: "240px",
     backgroundColor: "#0a2540",
