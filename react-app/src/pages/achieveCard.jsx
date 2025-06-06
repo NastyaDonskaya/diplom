@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-<<<<<<< HEAD
 import { API_URL } from "../api";
-=======
 
-const API_URL = "http://localhost:3001/api";
->>>>>>> 9081e66 (Update achieveCard.jsx)
+
 
 function parseJwt(token) {
   try {
