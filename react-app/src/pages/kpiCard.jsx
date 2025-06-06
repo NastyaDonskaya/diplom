@@ -128,7 +128,11 @@ const KpiCard = () => {
     fetchData();
   }, [userId, kpiTypeId, token]);
 
+<<<<<<< HEAD
   const getKPIperiod = () => {
+=======
+  const getPeriodKPI = () => {
+>>>>>>> 6145449 (Update kpiCard.jsx)
     if (!start && !end) {
       return kpiData;
     }
@@ -150,7 +154,11 @@ const KpiCard = () => {
     );
   }
 
+<<<<<<< HEAD
   const kpis = getKPIperiod();
+=======
+  const kpis = getPeriodKPI();
+>>>>>>> 6145449 (Update kpiCard.jsx)
 
   return (
     <div style={styles.wrapper}>
