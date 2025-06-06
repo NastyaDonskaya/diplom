@@ -5,83 +5,86 @@ const { where, Op } = require('sequelize')
 
 
 
-async function recalculate (userId) {
-    const lastVals = await KPI_value.findAll({
-        where: {userId, isLast: true},
-        include: [{model: KPI_type}]
-    })
-    for (let val of lastVals) {
-        const kpiType = val.kpi_type
-        await val.update({ isLast: false })
-        if (kpiType === 'DEF') {
-            await KPI_value.create({
-                kpiTypeId: kpiType.id,
-                userId,
-                value: val.value,
-                description: val.description,
-                isLast: true
-            });
+async function recalculate(userId) {
+    const kpiTypes = await KPI_type.findAll()
+    await KPI_value.destroy({where: {userId}})
+
+    for (const type of kpiTypes) {
+        const calc = type.calculationType
+        if (calc === 'DEF') {
             continue
         }
-        const calc = kpiType.calculationType
-        const achieveTypeId = kpiType.sourceAchieveTypeId
-        const attrName = kpiType.sourceAtributeName
+        const achieveTypeId = type.sourceAchieveTypeId
+        const attrName = type.sourceAtributeName
 
-        const attrs = await AchievementAttributeValue.findAll({
+        const achieves = await Achievement.findAll({
+            where: { userId, achieveTypeId },
             include: [{
-                model: Achievement,
-                where: {
-                    userId,
-                    achieveTypeId: achieveTypeId
-                },
-                attributes: []
-            }, {
-                model: AchievementTypeAttribute,
-                where: { name: attrName },
-                attributes: []
-            }],
-            attributes: ['value']
+                model: AchievementAttributeValue,
+                include: [{
+                    model: AchievementTypeAttribute,
+                    where: { name: attrName }
+                }]
+            }]
         })
+        if (achieves.length === 0) {
+            continue;
+        }
+        achieves.sort((a, b) => new Date(a.date) - new Date(b.date))
+        const last = achieves[achieves.length - 1].date
 
-        const values = attrs.map(a => parseFloat(a.value) || 0)
+        for (let i = 0; i < achieves.length; i++) {
 
-        let result
-        if (calc === 'SUM') {
-            let sum = 0
-            for (let v of values) {
-                sum += v
+            const pre = achieves.slice(0, i + 1);
+
+            const vals = []
+            for (const achieve of pre) {
+                const vs = achieve.achieve_attribute_values
+                    .filter(v => v.achieve_type_attribute.name === attrName)
+                    .map(v => parseFloat(v.value))
+                vals.push(...vs)
             }
-            result = sum
-        } else if (calc === 'COUNT') {
-            let cnt = 0
-            for (let v of values) {
-                cnt += 1
+
+            let result
+            if (calc === 'SUM') {
+                let sum = 0
+                for (let v of vals) {
+                    sum += v
+                }
+                result = sum
+            } else if (calc === 'COUNT') {
+                let cnt = 0
+                for (let v of vals) {
+                    cnt += 1
+                }
+                result = cnt
+            } else if (calc === 'AVG') {
+                let sum = 0
+                let cnt = 0
+                for (let v of vals) {
+                    sum += v
+                    cnt += 1
+                }
+                result = cnt ? sum / cnt : 0
+            } else if (calc === 'MAX') {
+                result = Math.max.apply(null, vals) 
+            } else if (calc === 'MIN') {
+                result = Math.min.apply(null, vals)
+            } else {
+                return ApiError.badReq('Неверный тип рассчета')
             }
-            result = cnt
-        } else if (calc === 'AVG') {
-            let sum = 0
-            let cnt = 0
-            for (let v of values) {
-                sum += v
-                cnt += 1
-            }
-            result = cnt ? sum / cnt : 0
-        } else if (calc === 'MAX') {
-            result = Math.max.apply(null, values) 
-        } else if (calc === 'MIN') {
-            result = Math.min.apply(null, values)
-        } else {
-            return ApiError.badReq('Неверный тип рассчета')
-        } 
-        await KPI_value.create({
-            kpiTypeId: kpiType.id,
-            userId,
-            value: result,
-            description: val.description,
-            isLast: true
-        });
+
+            await KPI_value.create({
+                kpiTypeId: type.id,
+                userId,
+                value: result,
+                startDate: achieves[i].date,
+                isLast: achieves[i].date === last
+            });
+        }
     }
 }
+
 
 class AchieveController {
 
@@ -312,7 +315,7 @@ class AchieveController {
                 await AchievementAttributeValue.bulkCreate(toCreate);
             }
 
-            await recalculate(owner.id)
+            await recalculate(owner.id, date)
             return res.json({ message: 'Обновлено', achievement: await achieve.reload() })
         } catch (e) {
             return next(ApiError.badReq(e.message))

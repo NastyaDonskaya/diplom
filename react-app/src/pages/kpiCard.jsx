@@ -92,10 +92,10 @@ const KpiCard = () => {
 
         const chartData = data
           .map((item) => ({
-            date: new Date(item.createdAt).toLocaleDateString(),
+            startDate: new Date(item.startDate).toLocaleDateString(),
             value: item.value,
           }))
-          .sort((a, b) => new Date(a.date) - new Date(b.date));
+          .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
         setKpiData(chartData);
 
@@ -169,7 +169,7 @@ const KpiCard = () => {
               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
+              <XAxis dataKey="startDate" />
               <YAxis />
               <Tooltip />
               <Line

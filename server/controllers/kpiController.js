@@ -25,37 +25,52 @@ class KpiController {
             }
 
             const calc = kpiType.calculationType
-            let result
 
             if (calc === 'DEF') {
                 if (typeof value === 'undefined') {
                     return next(ApiError.badReq('Укажите значение показателя'))
                 }
-                result = value
-            }
-            else {
-                const achieves = await Achievement.findAll({
-                    where: {userId, achieveTypeId: kpiType.sourceAchieveTypeId},
-                    include: [{
-                        model: AchievementAttributeValue,
-                        include: [{
-                            model: AchievementTypeAttribute,
-                            where: {
-                                name: kpiType.sourceAtributeName
-                            }
-                        }]
-                    }]
+                let result = await KPI_value.create({
+                    kpiTypeId,
+                    userId,
+                    value,
+                    description,
+                    startDate: new Date(),
+                    isLast: true
                 })
-                const vals = []
-
-                for (let achieve of achieves) {
-                    for (let attrVal of achieve.achieve_attribute_values) {
-                        if (attrVal.achieve_type_attribute?.name === kpiType.sourceAtributeName) {
-                            vals.push(parseFloat(attrVal.value))
+                return res.json(result)
+            }
+            
+            const achieves = await Achievement.findAll({
+                where: {userId, achieveTypeId: kpiType.sourceAchieveTypeId},
+                include: [{
+                    model: AchievementAttributeValue,
+                    include: [{
+                        model: AchievementTypeAttribute,
+                        where: {
+                            name: kpiType.sourceAtributeName
                         }
-                    }
-                }
+                    }]
+                }]
+            })
+            if (achieves.length === 0) {
+              return next(ApiError.badReq('Нет достижений'));
+            }
+            const last = achieves.sort((a, b) => new Date(b.date) - new Date(a.date))[0].date
+            
 
+            achieves.sort((a, b) => new Date(a.date) - new Date(b.date))
+
+            for (let i = 0; i < achieves.length; i++) {
+                const pre = achieves.slice(0, i + 1)
+                const vals = []
+                for (let achieve of pre) {
+                    const vs = achieve.achieve_attribute_values
+                        .filter(v => v.achieve_type_attribute.name === kpiType.sourceAtributeName)
+                        .map(v => parseFloat(v.value))
+                    vals.push(...vs)
+                }
+                let result 
                 if (calc === 'SUM') {
                     let sum = 0
                     for (let v of vals) {
@@ -83,15 +98,17 @@ class KpiController {
                 } else {
                     return ApiError.badReq('Неверный тип рассчета')
                 }
-            }
-            const kpiValue = await KPI_value.create({
-                kpiTypeId,
-                userId,
-                value: result,
-                description
-            })
 
-            return res.json(kpiValue)
+                const kpiValue = await KPI_value.create({
+                    kpiTypeId,
+                    userId,
+                    value: result,
+                    description,
+                    startDate: achieves[i].date,
+                    isLast: achieves[i].date === last ? true : false
+                })
+            }
+            return res.json({message: 'Создано'})
         } catch (e) {
             return next(ApiError.badReq(e.message))
         }
@@ -110,13 +127,14 @@ class KpiController {
                 return next(ApiError.badReq('Нет доступа'))
             }
 
-            const val = await KPI_value.findOne({where: {userId, kpiTypeId: typeId, isLast: true}})
-            if (!val) {
+            const vals = await KPI_value.findAll({where: {userId, kpiTypeId: typeId}})
+            if (!vals) {
                 return next(ApiError.badReq('Показатель не найден'))
             }
 
-            val.isLast = false
-            await val.save()
+            for (const val of vals) {
+                await val.destroy()
+            }
 
             return res.json('')
         } catch (e) {
